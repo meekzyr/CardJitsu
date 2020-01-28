@@ -105,6 +105,10 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+astron/account-bridge
+.idea
+*.exe
+*.dll
 
 # Spyder project settings
 .spyderproject

@@ -1,0 +1,35 @@
+from game.account import Account/AI/UD
+from game.objects import RootObject/UD
+from game.objects import AuthManager/UD
+from game.objects import DistributedToonManager/AI
+from game.player import DistributedPlayer/AI/UD
+from game.objects import TimeManager/AI
+
+dclass TimeManager: DistributedObject {
+  requestServerTime(uint8 context) clsend airecv;
+  serverTime(uint8 context, int32 timestamp);
+  setParentingRules();
+};
+
+dclass Account {
+  string ACCOUNT_ID db;
+  uint32 PLAYER_ID db;
+};
+
+dclass RootObject: DistributedObjectGlobal {
+};
+
+dclass AuthManager : DistributedObject {
+  requestAccess() clsend airecv;
+  accessResponse(uint8 success);
+  requestLogin(string, string) clsend airecv;
+};
+
+dclass DistributedToonManager : DistributedObject {
+  requestAvatar() clsend airecv;
+};
+
+dclass DistributedPlayer : DistributedNode {
+  readyToPlay() ownsend airecv;
+  setWinLevel(uint32) ownrecv db;
+};
