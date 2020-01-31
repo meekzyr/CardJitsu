@@ -1,11 +1,16 @@
 from panda3d.core import *
-import os
+
 loadPrcFile("config/Config.prc")
 
 # We're using ogg
 loadPrcFileData("", "audio-library-name p3openal_audio")
 bgmExt = '.ogg'
 sfxExt = '.ogg'
+
+from direct.directnotify.DirectNotifyGlobal import directNotify
+
+__builtins__.directNotify = directNotify
+__builtins__.process = 'client'
 
 from direct.showbase.ShowBase import ShowBase
 base = ShowBase()
@@ -19,11 +24,14 @@ for mount in mounts:
     vfs.mount(Filename(mountfile), Filename(mountpoint), 0)
 
 base.disableMouse()
-from direct.directnotify.DirectNotifyGlobal import directNotify
 
-__builtins__.directNotify = directNotify
 
-import JitsuClientRepository
+from direct.gui import DirectGuiGlobals
+DirectGuiGlobals.setDefaultDialogGeom(loader.loadModel('phase_3/models/gui/dialog_box_gui'))
+
+
+from game.objects import JitsuClientRepository
+
 base.cr = JitsuClientRepository.JitsuClientRepository()
 base.cr.startConnect()
 base.bgmExt = bgmExt

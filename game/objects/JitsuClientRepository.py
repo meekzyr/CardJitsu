@@ -2,11 +2,8 @@ from panda3d.core import *
 from direct.distributed.ClientRepositoryBase import ClientRepositoryBase
 from direct.distributed.MsgTypes import *
 from direct.distributed.PyDatagram import PyDatagram
-from direct.distributed.PyDatagramIterator import PyDatagramIterator
 from direct.distributed import DistributedSmoothNode
 from direct.gui.DirectGui import *
-from direct.showbase.DirectObject import DirectObject
-from direct.interval.IntervalGlobal import *
 from game.player import LocalPlayer
 import sys
 from game.gui.LoginScreen import LoginScreen
@@ -15,54 +12,42 @@ from game.gui.LoginScreen import LoginScreen
 class JitsuClientRepository(ClientRepositoryBase):
     taskChain = 'net'
 
-    def __init__(self, playerName=None, threadedNet=True):
-        dcFileNames = ['astron/dclass/direct.dc', 'astron/dclass/jitsu.dc']
-
-        ClientRepositoryBase.__init__(self, dcFileNames=dcFileNames,
-                                      connectMethod=self.CM_NET,
-                                      threadedNet=threadedNet)
+    def __init__(self, threadedNet=True):
+        ClientRepositoryBase.__init__(self, dcFileNames=['astron/dclass/direct.dc', 'astron/dclass/jitsu.dc'],
+                                      connectMethod=self.CM_NET, threadedNet=threadedNet)
 
         self.GameGlobalsId = 1000
         self.zoneInterest = None
         self.visInterest = None
+        self.districtObj = None
+        self.url = None
+        self.failureText = None
+        self.invalidText = None
+        self.waitingText = None
+        self.shardHandle = None
 
         self.authManager = self.generateGlobalObject(1001, 'AuthManager')
         self.loginInterface = None
-
-        base.transitions.FadeModelName = 'resources/phase_3/models/misc/fade.bam'
-
-        self.gameVersion = base.config.GetString('server-version', 'dev')
-
-        self.toonMgr = None
+        self.gameVersion = base.config.GetString('base-version', 'dev')
 
         # Allow some time for other processes.  This also allows time
         # each frame for the network thread to run.
         base.setSleep(0.01)
 
-        base.disableMouse()
-
         # No game, no avatar (yet).
         base.localAvatar = None
 
     def lostConnection(self):
-        # This should be overridden by a derived class to handle an
-        # unexpectedly lost connection to the gameserver.
         self.notify.warning("Lost connection to gameserver.")
 
         cbMgr = CullBinManager.getGlobalPtr()
         cbMgr.addBin('gui-popup', cbMgr.BTUnsorted, 60)
 
-        self.failureText = OnscreenText(
-            'Lost connection to gameserver.\nPress ESC to quit.',
-            scale=0.15, fg=(1, 0, 0, 1), shadow=(0, 0, 0, 1),
-            pos=(0, 0.2))
+        self.failureText = OnscreenText('Lost connection to gameserver.', scale=0.15, fg=(1, 0, 0, 1),
+                                        shadow=(0, 0, 0, 1), pos=(0, 0.2))
         self.failureText.setBin('gui-popup', 0)
         base.transitions.fadeScreen(alpha=1)
         render.hide()
-
-        self.ignore('escape')
-        self.accept('escape', self.exit)
-        self.accept('control-escape', self.exit)
 
     def exit(self):
         if self.isConnected():
@@ -74,40 +59,29 @@ class JitsuClientRepository(ClientRepositoryBase):
     def startConnect(self):
         self.url = None
         if not self.url:
-            tcpPort = base.config.GetInt('server-port', 7198)
-            hostname = base.config.GetString('server-host', '127.0.0.1')
+            tcpPort = base.config.GetInt('base-port', 7198)
+            hostname = base.config.GetString('base-host', '127.0.0.1')
             if not hostname:
                 hostname = '127.0.0.1'
             self.url = URLSpec('g://%s' % hostname, 1)
             self.url.setPort(tcpPort)
 
-        self.waitingText = OnscreenText(
-            'Connecting to %s.\nPress ESC to cancel.' % (self.url),
-            scale=0.1, fg=(1, 1, 1, 1), shadow=(0, 0, 0, 1))
+        self.waitingText = OnscreenText('Connecting to %s.\nPress ESC to cancel.' % self.url, scale=0.1,
+                                        fg=(1, 1, 1, 1), shadow=(0, 0, 0, 1))
 
-        self.connect([self.url],
-                     successCallback=self.connectSuccess,
-                     failureCallback=self.connectFailure)
-
-    def escape(self):
-        """ The user pressed escape.  Exit the client. """
-        self.exit()
+        self.connect([self.url], successCallback=self.connectSuccess, failureCallback=self.connectFailure)
 
     def connectFailure(self, statusCode, statusString):
         self.notify.warning('failure')
         self.waitingText.destroy()
-        self.failureText = OnscreenText(
-            'Failed to connect to %s:\n%s.\nPress ESC to quit.' % (self.url, statusString),
-            scale=0.15, fg=(1, 0, 0, 1), shadow=(0, 0, 0, 1),
-            pos=(0, 0.2))
+        self.failureText = OnscreenText('Failed to connect to %s:\n%s.\nPress ESC to quit.' % (self.url, statusString),
+                                        scale=0.15, fg=(1, 0, 0, 1), shadow=(0, 0, 0, 1), pos=(0, 0.2))
 
     def makeWaitingText(self):
         if self.waitingText:
             self.notify.warning('make destroy')
             self.waitingText.destroy()
-        self.waitingText = OnscreenText(
-            'Waiting for server.',
-            scale=0.1, fg=(1, 1, 1, 1), shadow=(0, 0, 0, 1))
+        self.waitingText = OnscreenText('Waiting for base.', scale=0.1, fg=(1, 1, 1, 1), shadow=(0, 0, 0, 1))
 
     def connectSuccess(self):
         """ Successfully connected.  But we still can't really do
@@ -121,16 +95,9 @@ class JitsuClientRepository(ClientRepositoryBase):
         dg.addString(self.gameVersion)
         self.send(dg)
 
-        # Make sure we have interest in the TimeManager zone, so we
-        # always see it even if we switch to another zone.
-        # self.setInterestZones([1])
-
-        # We must wait for the TimeManager to be fully created and
-        # synced before we can enter zone 2 and wait for the game
-        # object.
-        # self.acceptOnce(self.uniqueName('gotTimeSync'), self.syncReady)
-        self.loginInterface = LoginScreen()
-        self.loginInterface.load()
+        if not self.loginInterface:
+            self.loginInterface = LoginScreen()
+            self.loginInterface.load()
 
     def handleDatagram(self, di):
         msgType = self.getMsgType()
@@ -154,7 +121,6 @@ class JitsuClientRepository(ClientRepositoryBase):
     def handleHelloResp(self):
         # self.startHeartbeat()
         self.acceptOnce('accessResponse', self.handleResponse)
-        #self.authManager.requestAccess()
 
     def sendHeartbeat(self):
         dg = PyDatagram()
@@ -187,17 +153,15 @@ class JitsuClientRepository(ClientRepositoryBase):
         parentId = di.getUint32()
         zoneId = di.getUint32()
         dclassId = di.getUint16()
-        self.handleAvatarResponseMsg(doId, di)
+        self.handleAvatarResponseMsg(doId, di, parentId, zoneId)
 
-    def handleAvatarResponseMsg(self, avatarId, di):
+    def handleAvatarResponseMsg(self, avatarId, di, parentId, zoneId):
         dclass = self.dclassesByName['DistributedPlayer']
         localAvatar = LocalPlayer.LocalPlayer(self)
         localAvatar.dclass = dclass
         base.localAvatar = localAvatar
         localAvatar.doId = avatarId
         self.localAvatarDoId = avatarId
-        parentId = None
-        zoneId = None
         localAvatar.setLocation(parentId, zoneId)
         localAvatar.generateInit()
         localAvatar.generate()
@@ -205,7 +169,6 @@ class JitsuClientRepository(ClientRepositoryBase):
         localAvatar.announceGenerate()
         localAvatar.postGenerateMessage()
         self.doId2do[avatarId] = localAvatar
-        self.localAvatarGenerated(localAvatar)
 
     def handleDelete(self, di):
         doId = di.getUint32()
@@ -214,14 +177,13 @@ class JitsuClientRepository(ClientRepositoryBase):
             del self.doId2do[doId]
             obj.deleteOrDelay()
 
-    def locateAvatar(self, zoneId):
-        if base.localAvatar:
-            dg = PyDatagram()
-            dg.addUint16(CLIENT_OBJECT_LOCATION)
-            dg.addUint32(base.localAvatar.doId)
-            dg.addUint32(self.timeManager.doId)
-            dg.addUint32(zoneId)
-            self.send(dg)
+    def sendSetLocation(self, doId, parentId, zoneId):
+        datagram = PyDatagram()
+        datagram.addUint16(CLIENT_OBJECT_LOCATION)
+        datagram.addUint32(doId)
+        datagram.addUint32(parentId)
+        datagram.addUint32(zoneId)
+        self.send(datagram)
 
     def handleResponse(self, resp):
         if resp == 1:
@@ -229,22 +191,41 @@ class JitsuClientRepository(ClientRepositoryBase):
                 self.loginInterface.unload()
                 self.loginInterface = None
 
-            self.acceptOnce(self.uniqueName('gotTimeSync'), self.syncReady)
-            self.mgrInterest = self.addInterest(self.GameGlobalsId, 1, 'game manager')
+            taskMgr.remove(self.uniqueName('loginFailed'))
+            if self.invalidText:
+                self.invalidText.destroy()
+                self.invalidText = None
 
-    def syncReady(self):
-        """ Now we've got the TimeManager manifested, and we're in
-        sync with the server time.  Now we can enter the world.  Check
-        to see if we've received our doIdBase yet. """
-        if self.toonMgr:
-            self.toonMgr.d_requestAvatar()
+            self.shardHandle = self.addInterest(self.GameGlobalsId, 3, 'shardHandle', event='shardHandleComplete')
+
+    def gotTimeSync(self):
+        pass
+
+    def uberZoneInterestComplete(self):
+        if self.timeManager:
+            if self.timeManager.synchronize('startup'):
+                self.accept('gotTimeSync', self.gotTimeSync)
+            else:
+                self.notify.warning('No sync from TimeManager.')
+                self.gotTimeSync()
+            DistributedSmoothNode.globalActivateSmoothing(1, 0)
         else:
-            self.acceptOnce(self.uniqueName('gotToonMgr'), self.getAv)
-        DistributedSmoothNode.globalActivateSmoothing(1, 0)
+            self.notify.warning('No TimeManager present.')
+            DistributedSmoothNode.activateSmoothing(0, 0)
 
-    def getAv(self):
-        self.notify.warning('getAv')
-        #self.toonMgr.d_requestAvatar()
+        base.localAvatar.enableButton()
 
-    def localAvatarGenerated(self, av):
-        print(base.localAvatar.zoneId)
+    def handleFailedLogin(self):
+        self.invalidText = OnscreenText('Invalid username or password.', scale=0.15, fg=(1, 0, 0, 1),
+                                        shadow=(0, 0, 0, 1), pos=(0, 0.2))
+        self.invalidText.setBin('gui-popup', 0)
+        taskMgr.remove(self.uniqueName('loginFailed'))
+
+        def cleanupText(task):
+            if self.invalidText:
+                self.invalidText.destroy()
+                self.invalidText = None
+            return task.done
+
+        taskMgr.doMethodLater(3, cleanupText, self.uniqueName('loginFailed'))
+

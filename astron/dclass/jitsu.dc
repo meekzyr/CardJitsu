@@ -1,18 +1,13 @@
 from game.account import Account/AI/UD
 from game.objects import RootObject/UD
 from game.objects import AuthManager/UD
-from game.objects import DistributedToonManager/AI
+from game.objects import DistributedDistrict/AI
 from game.player import DistributedPlayer/AI/UD
-from game.objects import TimeManager/AI
-
-dclass TimeManager: DistributedObject {
-  requestServerTime(uint8 context) clsend airecv;
-  serverTime(uint8 context, int32 timestamp);
-  setParentingRules();
-};
+from game.jitsu import DistributedCardJitsu/AI
 
 dclass Account {
   string ACCOUNT_ID db;
+  string ACCOUNT_PASSWORD db;
   uint32 PLAYER_ID db;
 };
 
@@ -25,11 +20,36 @@ dclass AuthManager : DistributedObject {
   requestLogin(string, string) clsend airecv;
 };
 
-dclass DistributedToonManager : DistributedObject {
-  requestAvatar() clsend airecv;
+dclass DistributedDistrict : DistributedObject {
+  setParentingRules(string, string) broadcast ram;
 };
 
 dclass DistributedPlayer : DistributedNode {
-  readyToPlay() ownsend airecv;
-  setWinLevel(uint32) ownrecv db;
+  setBeltLevel(uint32) required broadcast ownrecv db;
+  setWinCount(uint32) required broadcast ownrecv db;
+  setName(string) required broadcast db airecv;
+  setGameZone(uint32 zoneId) ownrecv;
+  queueReady() ownsend airecv;
 };
+
+struct JitsuCard {
+  uint8 trackId;
+  uint8 cardTier;
+};
+
+dclass DistributedCardJitsu : DistributedNode {
+  setTimer(int16) broadcast ram required;
+  cardSelected(uint32 avId, uint8 cardIndex) broadcast;
+  roundResult(uint32 winnerId, JitsuCard []) broadcast;
+  gameOver(uint8 result, uint32 resultAvId) broadcast;
+  startGame(uint32 []) broadcast;
+  setOpponentName(string, uint32 skillLevel);
+  forcePick();
+  receiveCards(JitsuCard []);
+  requestSelectCard(uint8 cardIndex, uint8 trackId, uint8 cardTier) clsend airecv;
+  requestBegin() clsend airecv;
+  requestExit() clsend airecv;
+  requestTimer() clsend airecv;
+  resultFinished() clsend airecv;
+};
+

@@ -5,6 +5,24 @@ from direct.directnotify.DirectNotifyGlobal import *
 from direct.fsm.FSM import *
 from .DatabaseClass import AccountDB
 
+import bcrypt
+import binascii
+import hashlib
+
+
+def hash_pw(salt, pw):
+    hmac = hashlib.pbkdf2_hmac('sha512', bytes(pw, 'utf-8'), bytes(salt, 'utf-8'), 100000)
+    hash = binascii.hexlify(hmac)
+    return (bytes(salt, 'utf-8') + hash).decode('ascii')
+
+
+def verify_pw(pw, salted_pw):
+    salt = salted_pw[:29]
+    stored_pw = salted_pw[29:]
+    hmac = hashlib.pbkdf2_hmac('sha512', bytes(pw, 'utf-8'), bytes(salt, 'utf-8'), 100000)
+    hash = binascii.hexlify(hmac).decode('ascii')
+    return hash == stored_pw
+
 
 class AuthFSM(FSM):
     DATABASE_CONTROL_CHANNEL = 4003
@@ -16,10 +34,22 @@ class AuthFSM(FSM):
         self.target = target
         self.accountId = 0
         self.token = ''
+        self.password = ''
         self.playerId = 0
+
+    def killConnection(self, connId, reason):
+        datagram = PyDatagram()
+        datagram.addServerHeader(
+            connId,
+            self.air.ourChannel,
+            CLIENTAGENT_EJECT)
+        datagram.addUint16(122)
+        datagram.addString(reason)
+        self.air.send(datagram)
 
     def enterBegin(self, username, password):
         self.token = username
+        self.password = password
         self.demand('Query')
 
     def enterQuery(self):
@@ -42,22 +72,30 @@ class AuthFSM(FSM):
 
     def __handleGrabbed(self, dclass, fields):
         if dclass != self.air.dclassesByName['AccountUD']:
-            self.notify.warning('wrong dclass')
-            # todo : kill connection
+            self.killConnection(self.target, 'Invalid dclass retrieved.')
             return
 
-        print('found account', dclass, fields)
+        acc_pass = fields.get('ACCOUNT_PASSWORD', '')
+        if acc_pass and not verify_pw(self.password, acc_pass):
+            self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [0])
+            return
+
         self.account = fields
+        self.playerId = fields.get('PLAYER_ID', 0)
         self.demand('SetAccount')
 
     def enterCreateAccount(self):
         # prepare the player
-        self.air.dbInterface.createObject(self.DATABASE_CONTROL_CHANNEL, self.air.dclassesByName['AccountUD'],
-                                          {'ACCOUNT_ID': str(self.username), 'PLAYER_ID': 0}, self.__handleCreate)
+        salt = bcrypt.gensalt().decode('utf-8')
+        fields = {'ACCOUNT_ID': str(self.username),
+                  'ACCOUNT_PASSWORD': hash_pw(salt, self.password),
+                  'PLAYER_ID': 0}
+
+        self.air.dbInterface.createObject(self.DATABASE_CONTROL_CHANNEL, self.air.dclassesByName['AccountUD'], fields,
+                                          callback=self.__handleCreate)
 
     def __handleCreate(self, accountId):
         if not accountId:
-            self.notify.warning('no account id')
             return
 
         self.accountId = accountId
@@ -65,7 +103,7 @@ class AuthFSM(FSM):
 
     def enterCreatePlayer(self):
         self.air.dbInterface.createObject(self.DATABASE_CONTROL_CHANNEL, self.air.dclassesByName['DistributedPlayerUD'],
-                                          {'setWinLevel': (0,)}, self.__handlePlayerCreated)
+                                          {'setBeltLevel': (0,)}, self.__handlePlayerCreated)
 
     def __handlePlayerCreated(self, avId):
         self.playerId = avId
@@ -83,29 +121,88 @@ class AuthFSM(FSM):
         self.demand('SetAccount')
 
     def enterSetAccount(self):
-        # activate the player on the dbss
-        self.air.sendActivate(self.playerId, 0, 0, self.air.dclassesByName['DistributedPlayerUD'])
-
         datagram = PyDatagram()
-        datagram.addServerHeader(self.target, self.air.ourChannel, CLIENTAGENT_OPEN_CHANNEL)
+        datagram.addServerHeader(
+            self.mgr.GetAccountConnectionChannel(self.accountId),
+            self.mgr.air.ourChannel,
+            CLIENTAGENT_EJECT)
+        datagram.addUint16(100)
+        datagram.appendData(b'This account has been logged in from elsewhere.')
+        self.mgr.air.send(datagram)
+
+        # Next, add this connection to the account channel.
+        datagram = PyDatagram()
+        datagram.addServerHeader(
+            self.target,
+            self.mgr.air.ourChannel,
+            CLIENTAGENT_OPEN_CHANNEL)
         datagram.addChannel(self.mgr.GetAccountConnectionChannel(self.accountId))
+        self.mgr.air.send(datagram)
+
+        # when this dg is added, the accId is correct, but avId=0
+        datagram = PyDatagram()
+        datagram.addServerHeader(
+            self.target,
+            self.air.ourChannel,
+            CLIENTAGENT_SET_CLIENT_ID)
+        datagram.addChannel(self.accountId << 32)
         self.air.send(datagram)
 
-        self.air.setOwner(self.playerId, self.target)
-        self.air.clientAddSessionObject(self.target, self.playerId)
-
+        # Un-sandbox them!
         datagram = PyDatagram()
-        datagram.addServerHeader(self.target, self.air.ourChannel, CLIENTAGENT_SET_CLIENT_ID)
+        datagram.addServerHeader(
+            self.target,
+            self.mgr.air.ourChannel,
+            CLIENTAGENT_SET_STATE)
+        datagram.addUint16(2)  # ESTABLISHED
+        self.mgr.air.send(datagram)
+
+        self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [1])
+        self.demand('SetAvatar')
+
+    def enterSetAvatar(self):
+        channel = self.mgr.GetAccountConnectionChannel(self.target)
+
+        datagramCleanup = PyDatagram()
+        datagramCleanup.addServerHeader(
+            self.playerId,
+            channel,
+            STATESERVER_OBJECT_DELETE_RAM)
+        datagramCleanup.addUint32(self.playerId)
+        datagram = PyDatagram()
+        datagram.addServerHeader(
+            channel,
+            self.air.ourChannel,
+            CLIENTAGENT_ADD_POST_REMOVE)
+        datagram.appendData(datagramCleanup.getMessage())
+        self.air.send(datagram)
+
+        # Activate the avatar on the DBSS:
+        self.air.sendActivate(self.playerId, 0, 0, self.air.dclassesByName['DistributedPlayerUD'],
+                              fields={'setName': [self.token]})
+
+        # Next, add them to the avatar channel:
+        datagram = PyDatagram()
+        datagram.addServerHeader(
+            channel,
+            self.air.ourChannel,
+            CLIENTAGENT_OPEN_CHANNEL)
         datagram.addChannel(self.mgr.GetPuppetConnectionChannel(self.target))
         self.air.send(datagram)
 
-        dg = PyDatagram()
-        dg.addServerHeader(self.target, self.air.ourChannel, CLIENTAGENT_OPEN_CHANNEL)
-        dg.addChannel(self.mgr.GetPuppetConnectionChannel(self.target))
-        self.air.send(dg)
+        # Finally, grant ownership and shut down.
+        self.air.setOwner(self.playerId, self.target)
 
-        self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [True])
-        self.demand('Off')
+        self.air.clientAddSessionObject(self.target, self.playerId)
+
+        # Now set their sender channel to represent their account affiliation:
+        datagram = PyDatagram()
+        datagram.addServerHeader(
+            self.target,
+            self.air.ourChannel,
+            CLIENTAGENT_SET_CLIENT_ID)
+        datagram.addChannel(self.mgr.GetPuppetConnectionChannel(self.playerId))
+        self.air.send(datagram)
 
 
 class AuthManagerUD(DistributedObjectUD):
@@ -120,35 +217,13 @@ class AuthManagerUD(DistributedObjectUD):
         self.conn2fsm = {}
 
     def requestLogin(self, username, password):
-        self.notify.warning([username, password])
         sender = self.air.getMsgSender()
 
-        self.air.setClientState(sender, 2)
+        self.notify.warning([username, password, sender])
 
         self.conn2fsm[sender] = AuthFSM(self, sender)
         self.conn2fsm[sender].request('Begin', username, password)
 
     def requestAccess(self):
         return
-        clientId = self.air.getMsgSender()
-
-        # unsandbox
-        self.air.setClientState(clientId, 2)
-
-        dg = PyDatagram()
-        dg.addServerHeader(clientId, self.air.ourChannel, CLIENTAGENT_OPEN_CHANNEL)
-        dg.addChannel(self.GetPuppetConnectionChannel(clientId))
-        self.air.send(dg)
-
-        '''
-        accChannel = self.GetAccountConnectionChannel(clientId)
-        # Now set their sender channel to represent their account affiliation:
-        dg = PyDatagram()
-        dg.addServerHeader(accChannel, self.air.ourChannel, CLIENTAGENT_SET_CLIENT_ID)
-        # High 32 bits: accountId
-        # Low 32 bits: avatarId
-        dg.addChannel(clientId << 32 | clientId)
-        self.air.send(dg)
-        '''
-
-        self.sendUpdateToChannel(clientId, 'accessResponse', [True])
+        #self.sendUpdateToChannel(clientId, 'accessResponse', [True])

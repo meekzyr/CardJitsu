@@ -6,6 +6,7 @@
 from direct.distributed import DistributedObject/AI
 from direct.distributed import DistributedObjectGlobal/AI/UD
 from direct.distributed import DistributedNode/AI
+from direct.distributed import TimeManager/AI
 from direct.distributed import DistributedSmoothNode/AI
 
 struct BarrierData {
@@ -28,6 +29,12 @@ dclass DistributedObject {
 dclass DistributedObjectGlobal: DistributedObject {
 };
 
+
+dclass TimeManager: DistributedObject {
+  requestServerTime(uint8 context) clsend airecv;
+  serverTime(uint8 context, int32 timestamp);
+  setParentingRules();
+};
 
 dclass DistributedNode: DistributedObject {
   setX(int16 / 10) broadcast ram ownsend airecv;

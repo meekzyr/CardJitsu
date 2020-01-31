@@ -19,4 +19,7 @@ class AuthManager(DistributedObjectGlobal):
 
     def accessResponse(self, success):
         print('accessResponse', [success])
-        messenger.send('accessResponse', [success])
+        if success == 0:
+            self.cr.handleFailedLogin()
+        elif success == 1:
+            messenger.send('accessResponse', [success])
