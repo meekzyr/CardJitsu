@@ -33,7 +33,7 @@ class LocalPlayer(DistributedPlayer):
             self.startButton.destroy()
             self.startButton = None
 
-        self.sendUpdate('queueReady')
+        self.d_sendReady()
 
     def enableButton(self):
         buttonModels = loader.loadModel('phase_3.5/models/gui/inventory_gui')
@@ -51,7 +51,7 @@ class LocalPlayer(DistributedPlayer):
         self.notify.warning(['requeueResponse', queue])
 
         if queue:
-            self.sendUpdate('queueReady')
+            self.d_sendReady()
         else:
             self.enableButton()
 
