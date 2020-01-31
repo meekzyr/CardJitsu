@@ -202,6 +202,7 @@ class JitsuClientRepository(ClientRepositoryBase):
         pass
 
     def uberZoneInterestComplete(self):
+        base.localAvatar.b_setLocation(self.districtObj.doId, 5)
         if self.timeManager:
             if self.timeManager.synchronize('startup'):
                 self.accept('gotTimeSync', self.gotTimeSync)
