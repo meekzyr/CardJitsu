@@ -2,11 +2,6 @@ from panda3d.core import *
 
 loadPrcFile("config/Config.prc")
 
-# We're using ogg
-loadPrcFileData("", "audio-library-name p3openal_audio")
-bgmExt = '.ogg'
-sfxExt = '.ogg'
-
 from direct.directnotify.DirectNotifyGlobal import directNotify
 
 __builtins__.directNotify = directNotify
@@ -29,12 +24,11 @@ base.disableMouse()
 from direct.gui import DirectGuiGlobals
 DirectGuiGlobals.setDefaultDialogGeom(loader.loadModel('phase_3/models/gui/dialog_box_gui'))
 
+cbMgr = CullBinManager.getGlobalPtr()
+cbMgr.addBin('gui-popup', cbMgr.BTUnsorted, 60)
 
 from game.objects import JitsuClientRepository
 
 base.cr = JitsuClientRepository.JitsuClientRepository()
 base.cr.startConnect()
-base.bgmExt = bgmExt
-base.sfxExt = base.sfxExt2 = sfxExt
-
 base.run()

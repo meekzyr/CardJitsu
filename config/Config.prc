@@ -1,8 +1,8 @@
 # Client settings
-window-title Networking Test
+window-title Card Jitsu
 sync-video #t
 texture-anisotropic-degree 16
-#default-directnotify-level info
+audio-library-name p3openal_audio
 smooth-lag 0.4
 gc-save-all 0
 

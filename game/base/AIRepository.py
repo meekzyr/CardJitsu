@@ -10,9 +10,9 @@ class AIRepository(AstronInternalRepository):
     notify = directNotify.newCategory('AIRepository')
     notify.setInfo(True)
 
-    def __init__(self, baseChannel, serverId, threadedNet=True):
+    def __init__(self, baseChannel, stateserverId, threadedNet=True):
         self.GameGlobalsId = 1000
-        AstronInternalRepository.__init__(self, baseChannel, serverId,
+        AstronInternalRepository.__init__(self, baseChannel, stateserverId,
                                           dcFileNames=['astron/dclass/direct.dc', 'astron/dclass/jitsu.dc'],
                                           dcSuffix='AI', connectMethod=self.CM_NET, threadedNet=threadedNet)
 
@@ -25,11 +25,7 @@ class AIRepository(AstronInternalRepository):
         self.game = None
 
         self.zoneAllocator = UniqueIdAllocator(3, 1048576)
-
-        tcpPort = base.config.GetInt('ai-base-port', 7199)
-        hostname = base.config.GetString('ai-base-host', '127.0.0.1')
         self.acceptOnce('airConnected', self.connectSuccess)
-        self.connect(hostname, tcpPort)
 
     def getAvatarExitEvent(self, doId):
         return 'distObjDelete-%s' % doId
@@ -44,7 +40,6 @@ class AIRepository(AstronInternalRepository):
 
         self.matchmaker = JitsuMatchmakerAI(self)
         self.matchmaker.startMatchmaking()
-        self.notify.info('Connected successfully!')
 
     def lostConnection(self):
         # This should be overridden by a derived class to handle an

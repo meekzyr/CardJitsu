@@ -1,4 +1,4 @@
-from panda3d.core import *
+from panda3d.core import loadPrcFile
 
 loadPrcFile("config/Config.prc")
 
@@ -7,10 +7,13 @@ from direct.directnotify.DirectNotifyGlobal import directNotify
 __builtins__.directNotify = directNotify
 __builtins__.process = 'server'
 
-loadPrcFileData('', 'window-type none\naudio-library-name null')
-from direct.showbase import ShowBase
+from .ServerBase import *
 from game.base.UDRepository import UDRepository
 
-base = ShowBase.ShowBase()
-base.air = UDRepository(threadedNet=True)
-base.run()
+hostname = simbase.config.GetString('astron-hostname', '127.0.0.1')
+port = simbase.config.GetInt('astron-md-port', 7199)
+
+simbase.air = UDRepository(threadedNet=True)
+simbase.air.connect(hostname, port)
+
+simbase.run()
