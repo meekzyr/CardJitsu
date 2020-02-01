@@ -30,10 +30,6 @@ class JitsuClientRepository(ClientRepositoryBase):
         self.loginInterface = None
         self.gameVersion = base.config.GetString('base-version', 'dev')
 
-        # Allow some time for other processes.  This also allows time
-        # each frame for the network thread to run.
-        base.setSleep(0.01)
-
         # No game, no avatar (yet).
         base.localAvatar = None
 

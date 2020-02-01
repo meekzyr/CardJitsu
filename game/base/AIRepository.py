@@ -15,9 +15,6 @@ class AIRepository(AstronInternalRepository):
                                           dcFileNames=['astron/dclass/direct.dc', 'astron/dclass/jitsu.dc'],
                                           dcSuffix='AI', connectMethod=self.CM_NET, threadedNet=threadedNet)
 
-        # Allow some time for other processes.
-        base.setSleep(0.01)
-
         self.games = []
 
         self.district = None

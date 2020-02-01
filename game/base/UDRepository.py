@@ -14,9 +14,6 @@ class UDRepository(AstronInternalRepository):
                                           dcFileNames=['astron/dclass/direct.dc', 'astron/dclass/jitsu.dc'],
                                           dcSuffix='UD', connectMethod=self.CM_NET, threadedNet=threadedNet)
 
-        # Allow some time for other processes.
-        base.setSleep(0.01)
-
         tcpPort = base.config.GetInt('ai-base-port', 7199)
         hostname = base.config.GetString('ai-base-host', '127.0.0.1')
         self.acceptOnce('airConnected', self.connectSuccess)
