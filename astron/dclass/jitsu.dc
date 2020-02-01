@@ -4,6 +4,8 @@ from game.objects import DistributedDistrict/AI
 from game.player import DistributedPlayer/AI/UD
 from game.jitsu import DistributedCardJitsu/AI
 
+typedef uint8 bool;
+
 dclass Account {
   string ACCOUNT_ID db;
   string ACCOUNT_PASSWORD db;
@@ -13,7 +15,7 @@ dclass Account {
 dclass AuthManager : DistributedObject {
   requestAccess() clsend airecv;
   accessResponse(uint8 success);
-  requestLogin(string, string) clsend airecv;
+  requestLogin(string, string, bool) clsend airecv;
 };
 
 dclass DistributedDistrict : DistributedObject {

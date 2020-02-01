@@ -7,6 +7,7 @@ from direct.gui.DirectGui import *
 from game.player import LocalPlayer
 import sys
 from game.gui.LoginScreen import LoginScreen
+from .AuthGlobals import *
 
 
 class JitsuClientRepository(ClientRepositoryBase):
@@ -22,7 +23,6 @@ class JitsuClientRepository(ClientRepositoryBase):
         self.districtObj = None
         self.url = None
         self.failureText = None
-        self.invalidText = None
         self.waitingText = None
         self.shardHandle = None
 
@@ -182,16 +182,13 @@ class JitsuClientRepository(ClientRepositoryBase):
         self.send(datagram)
 
     def handleResponse(self, resp):
-        if resp == 1:
+        self.notify.warning(['handleResponse', resp])
+        if resp == LOGIN_SUCCESS:
             if self.loginInterface:
                 self.loginInterface.unload()
                 self.loginInterface = None
 
-            taskMgr.remove(self.uniqueName('loginFailed'))
-            if self.invalidText:
-                self.invalidText.destroy()
-                self.invalidText = None
-
+            self.authManager.cleanupText()
             self.shardHandle = self.addInterest(self.GameGlobalsId, 3, 'shardHandle', event='shardHandleComplete')
 
     def gotTimeSync(self):
@@ -211,18 +208,3 @@ class JitsuClientRepository(ClientRepositoryBase):
             DistributedSmoothNode.activateSmoothing(0, 0)
 
         base.localAvatar.enableButton()
-
-    def handleFailedLogin(self):
-        self.invalidText = OnscreenText('Invalid username or password.', scale=0.15, fg=(1, 0, 0, 1),
-                                        shadow=(0, 0, 0, 1), pos=(0, 0.2))
-        self.invalidText.setBin('gui-popup', 0)
-        taskMgr.remove(self.uniqueName('loginFailed'))
-
-        def cleanupText(task):
-            if self.invalidText:
-                self.invalidText.destroy()
-                self.invalidText = None
-            return task.done
-
-        taskMgr.doMethodLater(3, cleanupText, self.uniqueName('loginFailed'))
-

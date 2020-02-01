@@ -4,6 +4,7 @@ from direct.distributed.MsgTypes import *
 from direct.directnotify.DirectNotifyGlobal import *
 from direct.fsm.FSM import *
 from .DatabaseClass import AccountDB
+from .AuthGlobals import *
 
 import bcrypt
 import binascii
@@ -27,7 +28,7 @@ def verify_pw(pw, salted_pw):
 class AuthFSM(FSM):
     DATABASE_CONTROL_CHANNEL = 4003
 
-    def __init__(self, mgr, target):
+    def __init__(self, mgr, target, creating):
         FSM.__init__(self, 'AuthFSM')
         self.mgr = mgr
         self.air = mgr.air
@@ -36,6 +37,7 @@ class AuthFSM(FSM):
         self.token = ''
         self.password = ''
         self.playerId = 0
+        self.creating = creating
 
     def killConnection(self, connId, reason):
         datagram = PyDatagram()
@@ -63,9 +65,16 @@ class AuthFSM(FSM):
         self.username = result.get('username', 0)
         self.accountId = result.get('accountId', 0)
         if self.accountId:
+            if self.creating:
+                self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [INVALID_USERNAME])
+                return
+
             self.demand('GrabAccount')
         else:
-            self.demand('CreateAccount')
+            if self.creating:
+                self.demand('CreateAccount')
+            else:
+                self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [INVALID_NOACCOUNT])
 
     def enterGrabAccount(self):
         self.air.dbInterface.queryObject(self.DATABASE_CONTROL_CHANNEL, self.accountId, self.__handleGrabbed)
@@ -77,7 +86,7 @@ class AuthFSM(FSM):
 
         acc_pass = fields.get('ACCOUNT_PASSWORD', '')
         if acc_pass and not verify_pw(self.password, acc_pass):
-            self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [0])
+            self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [INVALID_PASSWORD])
             return
 
         self.account = fields
@@ -117,8 +126,9 @@ class AuthFSM(FSM):
     def enterStoreAccount(self):
         self.mgr.accountDb.storeAccountID(self.username, self.accountId, self.__handleStored)
 
-    def __handleStored(self, success=True):
-        self.demand('SetAccount')
+    def __handleStored(self, success):
+        if success:
+            self.demand('SetAccount')
 
     def enterSetAccount(self):
         datagram = PyDatagram()
@@ -157,7 +167,7 @@ class AuthFSM(FSM):
         datagram.addUint16(2)  # ESTABLISHED
         self.mgr.air.send(datagram)
 
-        self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [1])
+        self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [LOGIN_SUCCESS])
         self.demand('SetAvatar')
 
     def enterSetAvatar(self):
@@ -216,12 +226,12 @@ class AuthManagerUD(DistributedObjectUD):
 
         self.conn2fsm = {}
 
-    def requestLogin(self, username, password):
+    def requestLogin(self, username, password, creating):
         sender = self.air.getMsgSender()
 
-        self.notify.warning([username, password, sender])
+        self.notify.warning([username, password, sender, creating])
 
-        self.conn2fsm[sender] = AuthFSM(self, sender)
+        self.conn2fsm[sender] = AuthFSM(self, sender, creating)
         self.conn2fsm[sender].request('Begin', username, password)
 
     def requestAccess(self):
