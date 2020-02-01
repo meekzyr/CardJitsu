@@ -103,19 +103,20 @@ class JitsuClientRepository(ClientRepositoryBase):
             self.handleUpdateField(di)
         elif msgType == CLIENT_ENTER_OBJECT_REQUIRED:
             self.handleGenerate(di)
-        elif msgType == CLIENT_ENTER_OBJECT_REQUIRED_OTHER:
-            self.handleGenerate(di, True)
+        elif msgType == CLIENT_OBJECT_LOCATION:
+            self.handleObjectLocation(di)
+        #elif msgType == CLIENT_ENTER_OBJECT_REQUIRED_OTHER:
+        #    self.handleGenerate(di, True)
         elif msgType == CLIENT_DONE_INTEREST_RESP:
             self.handleInterestDoneMessage(di)
         elif msgType == CLIENT_ENTER_OBJECT_REQUIRED_OWNER:
             self.handleGenerateOwner(di)
-        elif msgType == CLIENT_ENTER_OBJECT_REQUIRED_OTHER_OWNER:
-            self.handleGenerateOwner(di, True)
+        #elif msgType == CLIENT_ENTER_OBJECT_REQUIRED_OTHER_OWNER:
+        #    self.handleGenerateOwner(di, True)
         elif msgType == CLIENT_OBJECT_LEAVING:
             self.handleDelete(di)
 
     def handleHelloResp(self):
-        # self.startHeartbeat()
         self.acceptOnce('accessResponse', self.handleResponse)
 
     def sendHeartbeat(self):
@@ -124,7 +125,6 @@ class JitsuClientRepository(ClientRepositoryBase):
         self.send(dg)
 
     def sendDisconnect(self):
-        print('Sending disconnect messsage')
         dg = PyDatagram()
         dg.addUint16(CLIENT_DISCONNECT)
         self.send(dg)
