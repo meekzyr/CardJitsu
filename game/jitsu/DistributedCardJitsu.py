@@ -319,7 +319,7 @@ class DistributedCardJitsu(DistributedNode):
                     timeLeft = 60
                 self.clockNode.setPos(1.16, 0, -0.83)
 
-                self.clockNode.countdown(timeLeft, self.doNothing)
+                self.clockNode.countdown(timeLeft)
                 self.clockNode.show()
             else:
                 self.clockNode.stop()

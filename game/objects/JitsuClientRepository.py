@@ -23,7 +23,6 @@ class JitsuClientRepository(ClientRepositoryBase):
         self.districtObj = None
         self.url = None
         self.failureText = None
-        self.waitingText = None
 
         self.authManager = self.generateGlobalObject(1001, 'AuthManager')
         self.loginInterface = None
@@ -34,10 +33,6 @@ class JitsuClientRepository(ClientRepositoryBase):
 
     def lostConnection(self):
         self.notify.warning("Lost connection to gameserver.")
-
-        cbMgr = CullBinManager.getGlobalPtr()
-        cbMgr.addBin('gui-popup', cbMgr.BTUnsorted, 60)
-
         self.failureText = OnscreenText('Lost connection to gameserver.', scale=0.15, fg=(1, 0, 0, 1),
                                         shadow=(0, 0, 0, 1), pos=(0, 0.2))
         self.failureText.setBin('gui-popup', 0)
@@ -61,29 +56,14 @@ class JitsuClientRepository(ClientRepositoryBase):
             self.url = URLSpec('g://%s' % hostname, 1)
             self.url.setPort(tcpPort)
 
-        self.waitingText = OnscreenText('Connecting to %s.\nPress ESC to cancel.' % self.url, scale=0.1,
-                                        fg=(1, 1, 1, 1), shadow=(0, 0, 0, 1))
-
         self.connect([self.url], successCallback=self.connectSuccess, failureCallback=self.connectFailure)
 
     def connectFailure(self, statusCode, statusString):
-        self.notify.warning('failure')
-        self.waitingText.destroy()
-        self.failureText = OnscreenText('Failed to connect to %s:\n%s.\nPress ESC to quit.' % (self.url, statusString),
+        self.failureText = OnscreenText('Failed to connect to %s:\n%s.' % (self.url, statusString),
                                         scale=0.15, fg=(1, 0, 0, 1), shadow=(0, 0, 0, 1), pos=(0, 0.2))
 
-    def makeWaitingText(self):
-        if self.waitingText:
-            self.notify.warning('make destroy')
-            self.waitingText.destroy()
-        self.waitingText = OnscreenText('Waiting for base.', scale=0.1, fg=(1, 1, 1, 1), shadow=(0, 0, 0, 1))
-
     def connectSuccess(self):
-        """ Successfully connected.  But we still can't really do
-        anything until we send an CLIENT_HELLO message. """
-        if self.waitingText:
-            self.waitingText.destroy()
-
+        """ Successfully connected.  But we still need to send a CLIENT_HELLO message. """
         dg = PyDatagram()
         dg.addUint16(CLIENT_HELLO)
         dg.addUint32(self.hashVal)
@@ -141,7 +121,7 @@ class JitsuClientRepository(ClientRepositoryBase):
         else:
             self.generateWithRequiredFields(dclass, doId, di, parentId, zoneId)
         dclass.stopGenerate()
-        self.notify.warning(dclass.getName())
+        self.notify.debug(dclass.getName())
 
     def handleGenerateOwner(self, di, other=False):
         doId = di.getUint32()

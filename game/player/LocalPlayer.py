@@ -48,8 +48,6 @@ class LocalPlayer(DistributedPlayer):
         buttonModels.removeNode()
 
     def requeueResponse(self, queue):
-        self.notify.warning(['requeueResponse', queue])
-
         if queue:
             self.d_sendReady()
         else:

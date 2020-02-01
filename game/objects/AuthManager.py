@@ -29,8 +29,8 @@ class AuthManager(DistributedObjectGlobal):
             self.invalidText = None
         if task:
             return task.done
-        else:
-            taskMgr.remove(self.uniqueName('loginFailed'))
+
+        taskMgr.remove(self.uniqueName('loginFailed'))
 
     def showLoginError(self, text):
         self.invalidText = OnscreenText(text, scale=0.15, fg=(1, 0, 0, 1), shadow=(0, 0, 0, 1), pos=(0, 0.2))

@@ -90,7 +90,3 @@ class Timer(DirectFrame):
         self.reset()
         self.countdownTask = None
         DirectFrame.destroy(self)
-
-    def cleanup(self):
-        self.destroy()
-        self.notify.warning('Call destroy, not cleanup')
