@@ -22,8 +22,8 @@ class JitsuMatchmakerAI(DirectObject):
         self.zone2Game = {}
         self.avId2Rank = {}
 
-    def startMatchmake(self):
-        taskMgr.doMethodLater(self.TaskDelay, self.matchmakerTask, 'matchmake')
+    def startMatchmaking(self):
+        taskMgr.doMethodLater(self.TaskDelay, self.matchmakerTask, 'matchmaker')
 
     def matchmakerTask(self, task):
         matches = []

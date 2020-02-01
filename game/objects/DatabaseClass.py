@@ -30,5 +30,4 @@ class AccountDB:
             self.dbm.sync()
             callback(True)
         else:
-            print('Unable to associate user %s with account %d!' % (username, accountId))
             callback(False)

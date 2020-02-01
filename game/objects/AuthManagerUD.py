@@ -129,6 +129,10 @@ class AuthFSM(FSM):
     def __handleStored(self, success):
         if success:
             self.demand('SetAccount')
+        else:
+            reason = 'Unable to associate user %s with account %d!' % (self.username, self.accountId)
+            self.notify.warning(reason)
+            self.killConnection(self.target, reason)
 
     def enterSetAccount(self):
         datagram = PyDatagram()

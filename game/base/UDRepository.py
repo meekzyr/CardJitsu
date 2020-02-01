@@ -4,6 +4,8 @@ from game.objects.AuthManagerUD import AuthManagerUD
 
 
 class UDRepository(AstronInternalRepository):
+    notify = directNotify.newCategory('UDRepository')
+    notify.setInfo(True)
 
     def __init__(self, threadedNet=True):
         self.baseChannel = 100000000
@@ -26,7 +28,7 @@ class UDRepository(AstronInternalRepository):
 
         authManager = AuthManagerUD(self)
         authManager.generateWithRequiredAndId(1001, self.GameGlobalsId, 0)
-        print('Connected successfully!')
+        self.notify.info('Connected successfully!')
 
     def getAvatarIdFromSender(self):
         return self.getMsgSender() & 0xFFFFFFFF

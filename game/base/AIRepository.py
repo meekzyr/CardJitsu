@@ -3,11 +3,12 @@ from direct.distributed.TimeManagerAI import TimeManagerAI
 from pandac.PandaModules import *
 import sys
 from game.objects.DistributedDistrictAI import DistributedDistrictAI
-from game.jitsu.DistributedCardJitsuAI import DistributedCardJitsuAI
 from game.jitsu.JitsuMatchmakerAI import JitsuMatchmakerAI
 
 
 class AIRepository(AstronInternalRepository):
+    notify = directNotify.newCategory('AIRepository')
+    notify.setInfo(True)
 
     def __init__(self, baseChannel, serverId, threadedNet=True):
         self.GameGlobalsId = 1000
@@ -34,8 +35,6 @@ class AIRepository(AstronInternalRepository):
         return 'distObjDelete-%s' % doId
 
     def connectSuccess(self):
-        print('Connected successfully!', self.districtId)
-
         self.district = DistributedDistrictAI(self)
         self.district.generateWithRequiredAndId(self.districtId, self.GameGlobalsId, 3)
         self.district.setAI(self.ourChannel)
@@ -44,7 +43,8 @@ class AIRepository(AstronInternalRepository):
         self.timeManager.generateWithRequired(2)
 
         self.matchmaker = JitsuMatchmakerAI(self)
-        self.matchmaker.startMatchmake()
+        self.matchmaker.startMatchmaking()
+        self.notify.info('Connected successfully!')
 
     def lostConnection(self):
         # This should be overridden by a derived class to handle an
