@@ -1,5 +1,4 @@
 from game.account import Account/AI/UD
-from game.objects import RootObject/UD
 from game.objects import AuthManager/UD
 from game.objects import DistributedDistrict/AI
 from game.player import DistributedPlayer/AI/UD
@@ -9,9 +8,6 @@ dclass Account {
   string ACCOUNT_ID db;
   string ACCOUNT_PASSWORD db;
   uint32 PLAYER_ID db;
-};
-
-dclass RootObject: DistributedObjectGlobal {
 };
 
 dclass AuthManager : DistributedObject {

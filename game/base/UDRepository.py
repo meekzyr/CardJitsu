@@ -1,5 +1,5 @@
 from direct.distributed.AstronInternalRepository import AstronInternalRepository
-from game.objects.RootObjectUD import RootObjectUD
+from direct.distributed.DistributedObjectGlobalUD import DistributedObjectGlobalUD
 from game.objects.AuthManagerUD import AuthManagerUD
 
 
@@ -23,16 +23,12 @@ class UDRepository(AstronInternalRepository):
         self.connect(hostname, tcpPort)
 
     def connectSuccess(self):
-        """ Successfully connected to the Message Director.
-            Now to generate the AuthManagerAI """
-        rootObj = RootObjectUD(self)
+        rootObj = DistributedObjectGlobalUD(self)
         rootObj.generateWithRequiredAndId(self.GameGlobalsId, 0, 0)
         self.setAI(self.GameGlobalsId, self.baseChannel)
 
         authManager = AuthManagerUD(self)
         authManager.generateWithRequiredAndId(1001, self.GameGlobalsId, 0)
-        #self.authManager = self.generateGlobalObject(1001, 'AuthManager')
-
         print('Connected successfully!')
 
     def getAvatarIdFromSender(self):
