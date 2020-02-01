@@ -13,7 +13,7 @@ from game.base.AIRepository import AIRepository
 hostname = simbase.config.GetString('astron-hostname', '127.0.0.1')
 port = simbase.config.GetInt('astron-md-port', 7199)
 
-simbase.air = AIRepository(baseChannel=301000000, stateserverId=4002, threadedNet=True)
+simbase.air = AIRepository(baseChannel=301000000, stateserverId=4002)
 simbase.air.connect(hostname, port)
 
 simbase.run()

@@ -10,11 +10,11 @@ class AIRepository(AstronInternalRepository):
     notify = directNotify.newCategory('AIRepository')
     notify.setInfo(True)
 
-    def __init__(self, baseChannel, stateserverId, threadedNet=True):
+    def __init__(self, baseChannel, stateserverId):
         self.GameGlobalsId = 1000
         AstronInternalRepository.__init__(self, baseChannel, stateserverId,
                                           dcFileNames=['astron/dclass/direct.dc', 'astron/dclass/jitsu.dc'],
-                                          dcSuffix='AI', connectMethod=self.CM_NET, threadedNet=threadedNet)
+                                          dcSuffix='AI', connectMethod=self.CM_NET, threadedNet=True)
 
         self.games = []
 

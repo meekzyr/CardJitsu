@@ -9,7 +9,7 @@ class UDRepository(AstronInternalRepository):
     notify = directNotify.newCategory('UDRepository')
     notify.setInfo(True)
 
-    def __init__(self, threadedNet=True):
+    def __init__(self):
         self.baseChannel = 1000000
         self.GameGlobalsId = 1000
         self.serverId = 4002
@@ -19,7 +19,7 @@ class UDRepository(AstronInternalRepository):
 
         AstronInternalRepository.__init__(self, self.baseChannel, self.serverId,
                                           dcFileNames=['astron/dclass/direct.dc', 'astron/dclass/jitsu.dc'],
-                                          dcSuffix='UD', connectMethod=self.CM_NET, threadedNet=threadedNet)
+                                          dcSuffix='UD', connectMethod=self.CM_NET, threadedNet=True)
 
     def handleConnected(self):
         rootObj = DistributedObjectAI(self)

@@ -13,7 +13,7 @@ from game.base.UDRepository import UDRepository
 hostname = simbase.config.GetString('astron-hostname', '127.0.0.1')
 port = simbase.config.GetInt('astron-md-port', 7199)
 
-simbase.air = UDRepository(threadedNet=True)
+simbase.air = UDRepository()
 simbase.air.connect(hostname, port)
 
 simbase.run()

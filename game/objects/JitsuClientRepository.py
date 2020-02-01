@@ -13,9 +13,9 @@ from .AuthGlobals import *
 class JitsuClientRepository(ClientRepositoryBase):
     taskChain = 'net'
 
-    def __init__(self, threadedNet=True):
+    def __init__(self):
         ClientRepositoryBase.__init__(self, dcFileNames=['astron/dclass/direct.dc', 'astron/dclass/jitsu.dc'],
-                                      connectMethod=self.CM_NET, threadedNet=threadedNet)
+                                      connectMethod=self.CM_NET, threadedNet=True)
 
         self.GameGlobalsId = 1000
         self.zoneInterest = None
