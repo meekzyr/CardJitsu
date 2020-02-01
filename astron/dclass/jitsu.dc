@@ -13,8 +13,7 @@ dclass Account {
 };
 
 dclass AuthManager : DistributedObject {
-  requestAccess() clsend airecv;
-  accessResponse(uint8 success);
+  loginResponse(uint8 success);
   requestLogin(string, string, bool) clsend airecv;
 };
 

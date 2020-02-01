@@ -24,7 +24,6 @@ class JitsuClientRepository(ClientRepositoryBase):
         self.url = None
         self.failureText = None
         self.waitingText = None
-        self.shardHandle = None
 
         self.authManager = self.generateGlobalObject(1001, 'AuthManager')
         self.loginInterface = None
@@ -117,7 +116,7 @@ class JitsuClientRepository(ClientRepositoryBase):
             self.handleDelete(di)
 
     def handleHelloResp(self):
-        self.acceptOnce('accessResponse', self.handleResponse)
+        pass
 
     def sendHeartbeat(self):
         dg = PyDatagram()
@@ -180,16 +179,6 @@ class JitsuClientRepository(ClientRepositoryBase):
         datagram.addUint32(parentId)
         datagram.addUint32(zoneId)
         self.send(datagram)
-
-    def handleResponse(self, resp):
-        self.notify.warning(['handleResponse', resp])
-        if resp == LOGIN_SUCCESS:
-            if self.loginInterface:
-                self.loginInterface.unload()
-                self.loginInterface = None
-
-            self.authManager.cleanupText()
-            self.shardHandle = self.addInterest(self.GameGlobalsId, 3, 'shardHandle', event='shardHandleComplete')
 
     def gotTimeSync(self):
         pass

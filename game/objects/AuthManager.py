@@ -9,8 +9,13 @@ class AuthManager(DistributedObjectGlobal):
         DistributedObjectGlobal.__init__(self, cr)
         self.cr.authManager = self
         self.invalidText = None
+        self.shardHandle = None
 
     def delete(self):
+        if self.shardHandle:
+            self.cr.removeInterest(self.shardHandle, 'shardHandleComplete')
+            self.shardHandle = None
+
         if self.invalidText:
             self.invalidText.destroy()
             self.invalidText = None
@@ -36,17 +41,17 @@ class AuthManager(DistributedObjectGlobal):
     def d_requestLogin(self, username, password, wantCreate):
         self.sendUpdate('requestLogin', [username, password, wantCreate])
 
-    def requestAccess(self):
-        self.sendUpdate('requestAccess', [])
-
-    def accessResponse(self, success):
-        print('accessResponse', [success])
-        if success == INVALID_PASSWORD:
+    def loginResponse(self, response):
+        if response == INVALID_PASSWORD:
             self.showLoginError('Invalid username or password.')
-        elif success == INVALID_USERNAME:
+        elif response == INVALID_USERNAME:
             self.showLoginError('Username is already taken.')
-        elif success == INVALID_NOACCOUNT:
+        elif response == INVALID_NOACCOUNT:
             self.showLoginError('No account is attached to that username.')
-        elif success == LOGIN_SUCCESS:
-            messenger.send('accessResponse', [success])
+        elif response == LOGIN_SUCCESS:
+            if self.cr.loginInterface:
+                self.cr.loginInterface.unload()
+                self.cr.loginInterface = None
+
             self.cleanupText()
+            self.shardHandle = self.cr.addInterest(self.cr.GameGlobalsId, 3, 'shardHandle', event='shardHandleComplete')

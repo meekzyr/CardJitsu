@@ -41,10 +41,7 @@ class AuthFSM(FSM):
 
     def killConnection(self, connId, reason):
         datagram = PyDatagram()
-        datagram.addServerHeader(
-            connId,
-            self.air.ourChannel,
-            CLIENTAGENT_EJECT)
+        datagram.addServerHeader(connId, self.air.ourChannel, CLIENTAGENT_EJECT)
         datagram.addUint16(122)
         datagram.addString(reason)
         self.air.send(datagram)
@@ -66,7 +63,7 @@ class AuthFSM(FSM):
         self.accountId = result.get('accountId', 0)
         if self.accountId:
             if self.creating:
-                self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [INVALID_USERNAME])
+                self.mgr.sendUpdateToChannel(self.target, 'loginResponse', [INVALID_USERNAME])
                 return
 
             self.demand('GrabAccount')
@@ -74,7 +71,7 @@ class AuthFSM(FSM):
             if self.creating:
                 self.demand('CreateAccount')
             else:
-                self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [INVALID_NOACCOUNT])
+                self.mgr.sendUpdateToChannel(self.target, 'loginResponse', [INVALID_NOACCOUNT])
 
     def enterGrabAccount(self):
         self.air.dbInterface.queryObject(self.DATABASE_CONTROL_CHANNEL, self.accountId, self.__handleGrabbed)
@@ -86,7 +83,7 @@ class AuthFSM(FSM):
 
         acc_pass = fields.get('ACCOUNT_PASSWORD', '')
         if acc_pass and not verify_pw(self.password, acc_pass):
-            self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [INVALID_PASSWORD])
+            self.mgr.sendUpdateToChannel(self.target, 'loginResponse', [INVALID_PASSWORD])
             return
 
         self.account = fields
@@ -135,59 +132,43 @@ class AuthFSM(FSM):
             self.killConnection(self.target, reason)
 
     def enterSetAccount(self):
+        channel = self.mgr.GetAccountConnectionChannel(self.accountId)
+
         datagram = PyDatagram()
-        datagram.addServerHeader(
-            self.mgr.GetAccountConnectionChannel(self.accountId),
-            self.mgr.air.ourChannel,
-            CLIENTAGENT_EJECT)
+        datagram.addServerHeader(channel, self.mgr.air.ourChannel, CLIENTAGENT_EJECT)
         datagram.addUint16(100)
         datagram.appendData(b'This account has been logged in from elsewhere.')
         self.mgr.air.send(datagram)
 
         # Next, add this connection to the account channel.
         datagram = PyDatagram()
-        datagram.addServerHeader(
-            self.target,
-            self.mgr.air.ourChannel,
-            CLIENTAGENT_OPEN_CHANNEL)
-        datagram.addChannel(self.mgr.GetAccountConnectionChannel(self.accountId))
+        datagram.addServerHeader(self.target, self.mgr.air.ourChannel, CLIENTAGENT_OPEN_CHANNEL)
+        datagram.addChannel(channel)
         self.mgr.air.send(datagram)
 
         # when this dg is added, the accId is correct, but avId=0
         datagram = PyDatagram()
-        datagram.addServerHeader(
-            self.target,
-            self.air.ourChannel,
-            CLIENTAGENT_SET_CLIENT_ID)
+        datagram.addServerHeader(self.target, self.air.ourChannel, CLIENTAGENT_SET_CLIENT_ID)
         datagram.addChannel(self.accountId << 32)
         self.air.send(datagram)
 
         # Un-sandbox them!
         datagram = PyDatagram()
-        datagram.addServerHeader(
-            self.target,
-            self.mgr.air.ourChannel,
-            CLIENTAGENT_SET_STATE)
+        datagram.addServerHeader(self.target, self.mgr.air.ourChannel, CLIENTAGENT_SET_STATE)
         datagram.addUint16(2)  # ESTABLISHED
         self.mgr.air.send(datagram)
 
-        self.mgr.sendUpdateToChannel(self.target, 'accessResponse', [LOGIN_SUCCESS])
+        self.mgr.sendUpdateToChannel(self.target, 'loginResponse', [LOGIN_SUCCESS])
         self.demand('SetAvatar')
 
     def enterSetAvatar(self):
         channel = self.mgr.GetAccountConnectionChannel(self.target)
 
         datagramCleanup = PyDatagram()
-        datagramCleanup.addServerHeader(
-            self.playerId,
-            channel,
-            STATESERVER_OBJECT_DELETE_RAM)
+        datagramCleanup.addServerHeader(self.playerId, channel, STATESERVER_OBJECT_DELETE_RAM)
         datagramCleanup.addUint32(self.playerId)
         datagram = PyDatagram()
-        datagram.addServerHeader(
-            channel,
-            self.air.ourChannel,
-            CLIENTAGENT_ADD_POST_REMOVE)
+        datagram.addServerHeader(channel, self.air.ourChannel, CLIENTAGENT_ADD_POST_REMOVE)
         datagram.appendData(datagramCleanup.getMessage())
         self.air.send(datagram)
 
@@ -197,10 +178,7 @@ class AuthFSM(FSM):
 
         # Next, add them to the avatar channel:
         datagram = PyDatagram()
-        datagram.addServerHeader(
-            channel,
-            self.air.ourChannel,
-            CLIENTAGENT_OPEN_CHANNEL)
+        datagram.addServerHeader(channel, self.air.ourChannel, CLIENTAGENT_OPEN_CHANNEL)
         datagram.addChannel(self.mgr.GetPuppetConnectionChannel(self.target))
         self.air.send(datagram)
 
@@ -211,12 +189,13 @@ class AuthFSM(FSM):
 
         # Now set their sender channel to represent their account affiliation:
         datagram = PyDatagram()
-        datagram.addServerHeader(
-            self.target,
-            self.air.ourChannel,
-            CLIENTAGENT_SET_CLIENT_ID)
+        datagram.addServerHeader(self.target, self.air.ourChannel, CLIENTAGENT_SET_CLIENT_ID)
         datagram.addChannel(self.mgr.GetPuppetConnectionChannel(self.playerId))
         self.air.send(datagram)
+        self.demand('Done')
+
+    def enterDone(self):
+        del self.mgr.conn2fsm[self.target]
 
 
 class AuthManagerUD(DistributedObjectUD):
@@ -232,12 +211,5 @@ class AuthManagerUD(DistributedObjectUD):
 
     def requestLogin(self, username, password, creating):
         sender = self.air.getMsgSender()
-
-        self.notify.warning([username, password, sender, creating])
-
         self.conn2fsm[sender] = AuthFSM(self, sender, creating)
         self.conn2fsm[sender].request('Begin', username, password)
-
-    def requestAccess(self):
-        return
-        #self.sendUpdateToChannel(clientId, 'accessResponse', [True])
