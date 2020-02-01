@@ -2,6 +2,8 @@ from direct.distributed.AstronInternalRepository import AstronInternalRepository
 from direct.distributed.DistributedObjectAI import DistributedObjectAI
 from game.objects.AuthManagerUD import AuthManagerUD
 
+import pymongo
+
 
 class UDRepository(AstronInternalRepository):
     notify = directNotify.newCategory('UDRepository')
@@ -11,6 +13,9 @@ class UDRepository(AstronInternalRepository):
         self.baseChannel = 1000000
         self.GameGlobalsId = 1000
         self.serverId = 4002
+
+        self.mongoCli = pymongo.MongoClient('localhost')
+        self.dbCollection = self.mongoCli['jitsu']
 
         AstronInternalRepository.__init__(self, self.baseChannel, self.serverId,
                                           dcFileNames=['astron/dclass/direct.dc', 'astron/dclass/jitsu.dc'],

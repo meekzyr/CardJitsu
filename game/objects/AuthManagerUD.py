@@ -3,7 +3,6 @@ from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed.MsgTypes import *
 from direct.directnotify.DirectNotifyGlobal import *
 from direct.fsm.FSM import *
-from .DatabaseClass import AccountDB
 from .AuthGlobals import *
 
 import bcrypt
@@ -52,11 +51,12 @@ class AuthFSM(FSM):
         self.demand('Query')
 
     def enterQuery(self):
-        self.mgr.accountDb.lookup(self.token, self.__handleLookup)
+        self.mgr.lookup(self.token, self.__handleLookup)
 
     def __handleLookup(self, result):
         success = result.get('success')
         if not success:
+            self.killConnection(self.target, 'Failed to locate database object.')
             return
 
         self.username = result.get('username', 0)
@@ -121,15 +121,10 @@ class AuthFSM(FSM):
         self.demand('StoreAccount')
 
     def enterStoreAccount(self):
-        self.mgr.accountDb.storeAccountID(self.username, self.accountId, self.__handleStored)
+        self.mgr.storeAccountId(self.accountId, self.username, self.__handleStored)
 
-    def __handleStored(self, success):
-        if success:
-            self.demand('SetAccount')
-        else:
-            reason = 'Unable to associate user %s with account %d!' % (self.username, self.accountId)
-            self.notify.warning(reason)
-            self.killConnection(self.target, reason)
+    def __handleStored(self):
+        self.demand('SetAccount')
 
     def enterSetAccount(self):
         channel = self.mgr.GetAccountConnectionChannel(self.accountId)
@@ -205,9 +200,21 @@ class AuthManagerUD(DistributedObjectUD):
         DistributedObjectUD.__init__(self, air)
         self.air = air
         self.clientId = None
-        self.accountDb = AccountDB()
-
+        self.dbm = self.air.dbCollection['accounts']
         self.conn2fsm = {}
+
+    def storeAccountId(self, accountId, username, callback):
+        self.dbm.update({'_id': accountId}, {'$set': {'username': username}}, upsert=True)
+        callback()
+
+    def lookup(self, username, callback):
+        query = self.dbm.find_one({'username': username})
+        if query is not None:
+            accountId = int(query['_id'])
+        else:
+            accountId = 0
+
+        callback({'success': True, 'username': username, 'accountId': accountId})
 
     def requestLogin(self, username, password, creating):
         sender = self.air.getMsgSender()

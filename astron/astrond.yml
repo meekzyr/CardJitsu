@@ -45,8 +45,8 @@ roles:
         min: 100000000
         max: 399999999
       backend:
-        type: yaml
-        directory: databases/astrondb
+        type: mongodb
+        server: mongodb://127.0.0.1:27017/jitsu
 
     # Finally, we'll have a state server for the database.
     - type: dbss
