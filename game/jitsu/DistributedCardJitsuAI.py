@@ -1,6 +1,7 @@
 from direct.distributed.DistributedNodeAI import DistributedNodeAI
 from direct.fsm import ClassicFSM, State
 from game.jitsu.CardJitsuGlobals import *
+from direct.distributed.ClockDelta import *
 from direct.directnotify.DirectNotifyGlobal import directNotify
 import copy
 import random
