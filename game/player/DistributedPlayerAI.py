@@ -22,7 +22,6 @@ class DistributedPlayerAI(DistributedNodeAI):
         self.air.matchmaker.playerEntered(self.doId)
 
     def setBeltLevel(self, beltLevel):
-        self.notify.warning(['setBeltLevel', self.doId, beltLevel, self.beltLevel])
         self.beltLevel = beltLevel
 
     def d_setBeltLevel(self, beltLevel):
