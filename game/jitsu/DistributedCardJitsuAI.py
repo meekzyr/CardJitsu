@@ -23,7 +23,6 @@ class DistributedCardJitsuAI(DistributedNodeAI):
         self.waitingOn = []
         self.wantStart = []
         self.activePlayers = []
-        self.playersObserving = []
 
         self.currentTurn = []
         self.playerDecks = {}
@@ -86,7 +85,6 @@ class DistributedCardJitsuAI(DistributedNodeAI):
         self.resultReady = []
         self.wantStart = []
         self.activePlayers = []
-        self.playersObserving = []
 
         self.currentTurn = []
         self.playerDecks = {}
