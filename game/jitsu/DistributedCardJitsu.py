@@ -194,6 +194,7 @@ class DistributedCardJitsu(DistributedNode):
         moveSeq.start()
 
     def enterWaitingToBegin(self):
+        self.cr.mainMenu.unload()
         self.enableLeaveButton()
 
     def exitWaitingToBegin(self):
@@ -219,6 +220,7 @@ class DistributedCardJitsu(DistributedNode):
         self.clockNode.hide()
 
     def enterGameOver(self):
+        base.cr.mainMenu.load()
         base.localAvatar.askForRequeue()
         base.localAvatar.cleanupGameInterest()
 

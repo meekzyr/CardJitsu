@@ -13,6 +13,9 @@ class DistributedDistrict(DistributedObject):
         self.acceptOnce('uberInterestComplete', self.cr.uberZoneInterestComplete)
         self.cr.districtObj = self
 
+    def postGenerateMessage(self):
+        messenger.send('gotDistrict')
+
     def delete(self):
         if self.uberInterest:
             self.cr.removeInterest(self.uberInterest, 'clearInterestDone')

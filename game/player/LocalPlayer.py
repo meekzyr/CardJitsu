@@ -1,6 +1,5 @@
 from .DistributedPlayer import DistributedPlayer
 from ..jitsu.CardJitsuGlobals import FONT
-from direct.gui.DirectButton import *
 from direct.gui.DirectDialog import YesNoDialog
 
 
@@ -9,15 +8,10 @@ class LocalPlayer(DistributedPlayer):
 
     def __init__(self, cr):
         DistributedPlayer.__init__(self, cr)
-        self.startButton = None
         self.requeueDialog = None
         self.gameInterest = None
 
     def delete(self):
-        if self.startButton:
-            self.startButton.destroy()
-            self.startButton = None
-
         if self.requeueDialog:
             self.requeueDialog.destroy()
             self.requeueDialog = None
@@ -28,30 +22,11 @@ class LocalPlayer(DistributedPlayer):
 
         DistributedPlayer.delete(self)
 
-    def startButtonPushed(self):
-        if self.startButton:
-            self.startButton.destroy()
-            self.startButton = None
-
-        self.d_sendReady()
-
-    def enableButton(self):
-        buttonModels = loader.loadModel('phase_3.5/models/gui/inventory_gui')
-        upButton = buttonModels.find('**//InventoryButtonUp')
-        downButton = buttonModels.find('**/InventoryButtonDown')
-        rolloverButton = buttonModels.find('**/InventoryButtonRollover')
-        self.startButton = DirectButton(parent=base.a2dTopRight, relief=None, text='Queue', text_fg=(1, 1, 0.65, 1),
-                                        text_font=FONT, text_pos=(0, -.23), text_scale=0.6, pos=(-0.3, 0, -0.65),
-                                        scale=0.15, image=(upButton, downButton, rolloverButton),
-                                        image_color=(1, 0, 0, 1),  image_scale=(20, 1, 11),
-                                        command=self.startButtonPushed)
-        buttonModels.removeNode()
-
     def requeueResponse(self, queue):
         if queue:
             self.d_sendReady()
         else:
-            self.enableButton()
+            self.cr.mainMenu.load()
 
         if self.requeueDialog:
             self.requeueDialog.destroy()

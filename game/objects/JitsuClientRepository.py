@@ -4,9 +4,11 @@ from direct.distributed.MsgTypes import *
 from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed import DistributedSmoothNode
 from direct.gui.DirectGui import *
+from direct.gui.DirectGuiGlobals import BACKGROUND_SORT_INDEX
 from game.player import LocalPlayer
 import sys
 from game.gui.LoginScreen import LoginScreen
+from game.gui.MainMenu import MainMenu
 from .AuthGlobals import *
 
 
@@ -26,10 +28,14 @@ class JitsuClientRepository(ClientRepositoryBase):
 
         self.authManager = self.generateGlobalObject(1001, 'AuthManager')
         self.loginInterface = None
+        self.mainMenu = None
         self.gameVersion = base.config.GetString('base-version', 'dev')
 
         # No game, no avatar (yet).
         base.localAvatar = None
+
+        self.mainBg = loader.loadModel('phase_3/models/gui/background')
+        self.mainBg.reparentTo(aspect2d, BACKGROUND_SORT_INDEX)
 
     def lostConnection(self):
         self.notify.warning("Lost connection to gameserver.")
@@ -143,7 +149,16 @@ class JitsuClientRepository(ClientRepositoryBase):
         dclass.receiveUpdateBroadcastRequiredOwner(localAvatar, di)
         localAvatar.announceGenerate()
         localAvatar.postGenerateMessage()
+
+        if self.districtObj:
+            self._addInterest()
+        else:
+            self.acceptOnce('gotDistrict', self._addInterest)
+
         self.doId2do[avatarId] = localAvatar
+
+    def _addInterest(self):
+        base.localAvatar.b_setLocation(self.districtObj.doId, 5)
 
     def handleDelete(self, di):
         doId = di.getUint32()
@@ -160,20 +175,17 @@ class JitsuClientRepository(ClientRepositoryBase):
         datagram.addUint32(zoneId)
         self.send(datagram)
 
-    def gotTimeSync(self):
-        pass
-
     def uberZoneInterestComplete(self):
-        base.localAvatar.b_setLocation(self.districtObj.doId, 5)
+        self.mainMenu = MainMenu()
+        self.mainMenu.load()
+
         if self.timeManager:
-            if self.timeManager.synchronize('startup'):
-                self.accept('gotTimeSync', self.gotTimeSync)
-            else:
-                self.notify.warning('No sync from TimeManager.')
-                self.gotTimeSync()
+            #if self.timeManager.synchronize('startup'):
+            #    self.accept('gotTimeSync', self.gotTimeSync)
+            #else:
+               #self.notify.warning('No sync from TimeManager.')
+               # self.gotTimeSync()
             DistributedSmoothNode.globalActivateSmoothing(1, 0)
         else:
             self.notify.warning('No TimeManager present.')
             DistributedSmoothNode.activateSmoothing(0, 0)
-
-        base.localAvatar.enableButton()

@@ -8,6 +8,7 @@ class DistributedPlayer(DistributedNode):
     def __init__(self, cr):
         DistributedNode.__init__(self, cr)
         self._name = ''
+        self.winCount = 0
         self.beltLevel = 0
 
     def setName(self, name):
@@ -15,6 +16,12 @@ class DistributedPlayer(DistributedNode):
 
     def getName(self):
         return self._name
+
+    def setWinCount(self, winCount):
+        self.winCount = winCount
+
+    def getWinCount(self):
+        return self.winCount
 
     def setBeltLevel(self, beltLevel):
         self.beltLevel = beltLevel

@@ -117,6 +117,19 @@ RANK_COLORS = {
 # black = 88
 
 
+WIN_REQUIREMENTS = {
+    WHITE: 5,
+    YELLOW: 13,
+    ORANGE: 21,
+    GREEN: 30,
+    BLUE: 40,
+    RED: 52,
+    PURPLE: 64,
+    BROWN: 76,
+    BLACK: 88
+}
+
+
 def getBeltLevel(winCount):
     level = NONE
     if 5 <= winCount < 13:
