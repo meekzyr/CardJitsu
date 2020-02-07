@@ -25,6 +25,7 @@ dclass DistributedPlayer : DistributedNode {
   setBeltLevel(uint32) required broadcast ownrecv db;
   setWinCount(uint32) required broadcast ownrecv db;
   setName(string) required broadcast db airecv;
+  setDNAString(blob) required broadcast db ownrecv airecv clsend;
   setGameZone(uint32 zoneId) ownrecv;
   queueReady() ownsend airecv;
 };

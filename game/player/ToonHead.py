@@ -125,7 +125,7 @@ class ToonHead(Actor.Actor):
         return
 
     def setupHead(self, dna, forGui=0):
-        self.__height = self.generateToonHead(dna, ['1000'], forGui)
+        self.__height = self.generateToonHead(dna, forGui=forGui)
         self.generateToonColor(dna)
         animalStyle = dna.getAnimal()
         bodyScale = toonBodyScales[animalStyle]
@@ -186,7 +186,7 @@ class ToonHead(Actor.Actor):
         self.lerpLookAt(lookAtPnt, blink=1)
         return
 
-    def generateToonHead(self, style, lods, forGui=0):
+    def generateToonHead(self, style, lods=['1000'], forGui=0):
         headStyle = style.head
         fix = None
         if headStyle == 'dls':

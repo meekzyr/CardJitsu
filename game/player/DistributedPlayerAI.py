@@ -11,6 +11,7 @@ class DistributedPlayerAI(DistributedNodeAI):
         self.beltLevel = 0
         self.winCount = 0
         self._name = ''
+        self.dnaString = ''
 
     def setName(self, name):
         self._name = name
@@ -43,6 +44,19 @@ class DistributedPlayerAI(DistributedNodeAI):
     def b_setWinCount(self, winCount):
         self.setWinCount(winCount)
         self.d_setWinCount(winCount)
+
+    def b_setDNAString(self, string):
+        self.d_setDNAString(string)
+        self.setDNAString(string)
+
+    def d_setDNAString(self, string):
+        self.sendUpdate('setDNAString', [string])
+
+    def setDNAString(self, string):
+        self.dnaString = string
+
+    def getDNAString(self):
+        return self.dnaString
 
     def getWinCount(self):
         return self.winCount

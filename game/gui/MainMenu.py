@@ -4,6 +4,7 @@ from direct.gui import DirectGuiGlobals as DGG
 from ..jitsu.CardJitsuGlobals import *
 from ..player.Toon import Toon
 from ..player.ToonDNA import ToonDNA
+from ..gui.CustomizeScreen import CustomizeScreen
 
 
 class MainMenu(NodePath):
@@ -41,8 +42,17 @@ class MainMenu(NodePath):
         self.buttons = []
         base.localAvatar.d_sendReady()
 
+    def returnToMenu(self, uiObj):
+        if uiObj:
+            uiObj.destroy()
+
+        self.load()
+
     def customizePlayer(self):
-        pass  # TODO
+        self.unload()
+
+        c = CustomizeScreen(callback=self.returnToMenu)
+        c.load()
 
     def enterOptions(self):
         pass  # TODO
@@ -98,7 +108,7 @@ class MainMenu(NodePath):
         dot.removeNode()
 
     def load(self):
-        if self.logo.isHidden():
+        if self.logo.isStashed():
             self.logo.unstash()
 
         self._createProgressBar()
@@ -147,8 +157,7 @@ class MainMenu(NodePath):
 
             self.toon = Toon()
             dna = ToonDNA()
-            dnaList = ('dll', 'ms', 'm', 'm', 7, 0, 7, 7, 2, 6, 2, 6, 2, 16)
-            dna.newToonFromProperties(*dnaList)
+            dna.makeFromNetString(base.localAvatar.getDNAString())
             self.toon.setDNA(dna)
 
             self.toon.getGeomNode().setDepthWrite(1)
@@ -159,7 +168,12 @@ class MainMenu(NodePath):
             self.rotate = self.pitch.attachNewNode('rotate')
             self.scale = self.rotate.attachNewNode('scale')
             self.pitch.setP(0)
-            self.toon.setScale(0.25)
+
+            scaleFactor = 0.2
+            if dna.legs == 'l':
+                scaleFactor = 0.19
+
+            self.toon.setScale(scaleFactor)
             self.toon.reparentTo(self.scale)
 
         buttonModels.removeNode()
@@ -214,6 +228,7 @@ class MainMenu(NodePath):
 
         if self.toon:
             self.toon.cleanup()
+            self.toon.delete()
             self.toon.removeNode()
             self.toon = None
 

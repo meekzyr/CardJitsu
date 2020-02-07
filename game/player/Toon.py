@@ -69,6 +69,9 @@ class Toon(ToonHead, Actor):
             newDNA.torso = newDNA.torso + 's'
         self.setDNA(newDNA)
 
+    def getDNAString(self):
+        return self.style
+
     def setDNA(self, dna):
         if self.style:
             self.updateToonDNA(dna)
@@ -76,6 +79,68 @@ class Toon(ToonHead, Actor):
             self.style = dna
             self.generateToon()
             #self.initializeDropShadow()
+
+    def swapToonHead(self, headStyle):
+        self.stopLookAroundNow()
+        self.eyelids.request('open')
+        self.unparentToonParts()
+        self.removePart('head', '1000')
+        self.removePart('head', '500')
+        self.removePart('head', '250')
+        self.style.head = headStyle
+        self.generateToonHead(self.style, forGui=1)
+        self.generateToonColor()
+        self.parentToonParts()
+        self.rescaleToon()
+        self.resetHeight()
+        self.eyelids.request('open')
+        self.startLookAround()
+
+    def swapToonTorso(self, torsoStyle, genClothes=True):
+        self.unparentToonParts()
+        self.removePart('torso', '1000')
+        self.removePart('torso', '500')
+        self.removePart('torso', '250')
+        self.style.torso = torsoStyle
+        self.generateToonTorso(genClothes)
+        self.generateToonColor()
+        self.parentToonParts()
+        self.rescaleToon()
+        self.resetHeight()
+        self.setupToonNodes()
+
+    def swapToonLegs(self, legStyle):
+        self.unparentToonParts()
+        self.removePart('legs', '1000')
+        self.removePart('legs', '500')
+        self.removePart('legs', '250')
+        self.style.legs = legStyle
+        self.generateToonLegs()
+        self.generateToonColor()
+        self.parentToonParts()
+        self.rescaleToon()
+        self.resetHeight()
+
+    def swapToonColor(self, dna):
+        #self.style = dna
+        self.generateToonColor()
+
+    def __swapToonClothes(self, dna):
+        #self.style = dna
+        self.generateToonClothes(fromNet=True)
+
+    def updateToonDNA(self, newDNA, fForce=0):
+        self.style.gender = newDNA.getGender()
+        oldDNA = self.style
+        if fForce or newDNA.head != oldDNA.head:
+            self.swapToonHead(newDNA.head)
+        if fForce or newDNA.torso != oldDNA.torso:
+            self.swapToonTorso(newDNA.torso, genClothes=False)
+            self.loop('neutral')
+        if fForce or newDNA.legs != oldDNA.legs:
+            self.swapToonLegs(newDNA.legs)
+        self.swapToonColor(newDNA)
+        self.__swapToonClothes(newDNA)
 
     def generateToonLegs(self):
         legStyle = self.style.legs
@@ -100,7 +165,7 @@ class Toon(ToonHead, Actor):
             self.loadAnims(HeadAnimDict[self.style.head], 'head', '500')
             self.loadAnims(HeadAnimDict[self.style.head], 'head', '250')
 
-    def generateToonTorso(self):
+    def generateToonTorso(self, genClothes=True):
         torsoStyle = self.style.torso
         filePrefix = TorsoDict.get(torsoStyle)
         if filePrefix is None:
@@ -116,7 +181,7 @@ class Toon(ToonHead, Actor):
         self.loadAnims(TorsoAnimDict[torsoStyle], 'torso', '1000')
         self.loadAnims(TorsoAnimDict[torsoStyle], 'torso', '500')
         self.loadAnims(TorsoAnimDict[torsoStyle], 'torso', '250')
-        if len(torsoStyle) != 1:
+        if genClothes and len(torsoStyle) != 1:
             self.generateToonClothes()
 
     def generateToonClothes(self, fromNet=False):
@@ -293,6 +358,10 @@ class Toon(ToonHead, Actor):
             self.setHeight(height)
 
     def setupToonNodes(self):
+        eyes = self.findAllMatches('**/*eyes*')
+        for eye in eyes:
+            eye.setDepthTest(1)
+
         rightHand = NodePath('rightHand')
         self.rightHand = None
         self.rightHands = []

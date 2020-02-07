@@ -151,14 +151,17 @@ class JitsuClientRepository(ClientRepositoryBase):
         localAvatar.postGenerateMessage()
 
         if self.districtObj:
-            self._addInterest()
+            self._relocateAv()
         else:
-            self.acceptOnce('gotDistrict', self._addInterest)
+            self.acceptOnce('gotDistrict', self._relocateAv)
 
         self.doId2do[avatarId] = localAvatar
 
-    def _addInterest(self):
+    def _relocateAv(self):
         base.localAvatar.b_setLocation(self.districtObj.doId, 5)
+
+        self.mainMenu = MainMenu()
+        self.mainMenu.load()
 
     def handleDelete(self, di):
         doId = di.getUint32()
@@ -176,9 +179,6 @@ class JitsuClientRepository(ClientRepositoryBase):
         self.send(datagram)
 
     def uberZoneInterestComplete(self):
-        self.mainMenu = MainMenu()
-        self.mainMenu.load()
-
         if self.timeManager:
             #if self.timeManager.synchronize('startup'):
             #    self.accept('gotTimeSync', self.gotTimeSync)

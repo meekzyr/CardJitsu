@@ -9,6 +9,8 @@ import bcrypt
 import binascii
 import hashlib
 
+from ..player import ToonDNA
+
 
 def hash_pw(salt, pw):
     hmac = hashlib.pbkdf2_hmac('sha512', bytes(pw, 'utf-8'), bytes(salt, 'utf-8'), 100000)
@@ -108,8 +110,11 @@ class AuthFSM(FSM):
         self.demand('CreatePlayer')
 
     def enterCreatePlayer(self):
+        dna = ToonDNA.ToonDNA()
+        dna.newToonRandom()
         self.air.dbInterface.createObject(self.DATABASE_CONTROL_CHANNEL, self.air.dclassesByName['DistributedPlayerUD'],
-                                          {'setBeltLevel': (0,)}, self.__handlePlayerCreated)
+                                          {'setBeltLevel': (0,),
+                                           'setDNAString': (dna.makeNetString(),)}, self.__handlePlayerCreated)
 
     def __handlePlayerCreated(self, avId):
         self.playerId = avId

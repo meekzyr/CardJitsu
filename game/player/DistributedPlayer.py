@@ -10,6 +10,20 @@ class DistributedPlayer(DistributedNode):
         self._name = ''
         self.winCount = 0
         self.beltLevel = 0
+        self.dnaString = ''
+
+    def setDNAString(self, dnaString):
+        self.dnaString = dnaString
+
+    def b_setDNAString(self, string):
+        self.d_setDNAString(string)
+        self.setDNAString(string)
+
+    def d_setDNAString(self, string):
+        self.sendUpdate('setDNAString', [string])
+
+    def getDNAString(self):
+        return self.dnaString
 
     def setName(self, name):
         self._name = name

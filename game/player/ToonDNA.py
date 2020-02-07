@@ -1947,6 +1947,33 @@ allColorsList = [VBase4(1.0, 1.0, 1.0, 1.0),
                  VBase4(0.898438, 0.617188, 0.90625, 1.0),
                  VBase4(0.7, 0.7, 0.8, 1.0),
                  VBase4(0.3, 0.3, 0.35, 1.0)]
+NumToColor = ['White',
+ 'Peach',
+ 'Bright Red',
+ 'Red',
+ 'Maroon',
+ 'Sienna',
+ 'Brown',
+ 'Tan',
+ 'Coral',
+ 'Orange',
+ 'Yellow',
+ 'Cream',
+ 'Citrine',
+ 'Lime',
+ 'Sea Green',
+ 'Green',
+ 'Light Blue',
+ 'Aqua',
+ 'Blue',
+ 'Periwinkle',
+ 'Royal Blue',
+ 'Slate Blue',
+ 'Purple',
+ 'Lavender',
+ 'Pink',
+ 'Plum',
+ 'Black']
 defaultBoyColorList = [1,
                        2,
                        3,
@@ -2529,7 +2556,7 @@ class ToonDNA:
             return False
         if armColor >= len(allColorsList):
             return False
-        if gloveColor != 0:
+        if gloveColor >= len(allColorsList):
             return False
         if legColor >= len(allColorsList):
             return False
@@ -2573,7 +2600,7 @@ class ToonDNA:
     def __defaultColors(self):
         color = self.defaultColor()
         self.armColor = color
-        self.gloveColor = 0
+        self.gloveColor = color
         self.legColor = color
         self.headColor = color
 
@@ -2595,7 +2622,7 @@ class ToonDNA:
             self.armColor = color
             self.legColor = color
             self.headColor = color
-            self.gloveColor = 0
+            self.gloveColor = color
         else:
             notify.error("tuple must be in format ('%s', '%s', '%s', '%s')")
         return
@@ -2717,7 +2744,7 @@ class ToonDNA:
             self.armColor = color
             self.legColor = color
             self.headColor = color
-        self.gloveColor = 0
+        self.gloveColor = generator.choice(list(range(0, len(allColorsList))))
 
     def asTuple(self):
         return (self.head,
