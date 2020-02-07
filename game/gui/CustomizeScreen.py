@@ -3,7 +3,7 @@ from direct.gui import DirectGuiGlobals as DGG
 from direct.gui.DirectButton import DirectButton
 from direct.gui.DirectLabel import DirectLabel
 from direct.gui.DirectFrame import DirectFrame
-from direct.gui.DirectOptionMenu import DirectOptionMenu
+from .CustomizeOption import CustomizeOption
 
 
 from ..jitsu.CardJitsuGlobals import FONT
@@ -54,6 +54,12 @@ class CustomizeScreen(DirectFrame):
         self.muzzleLabel = None
         self.gloveOptions = None
         self.gloveLabel = None
+        self.headColorOptions = None
+        self.headColorLabel = None
+        self.armColorOptions = None
+        self.armColorLabel = None
+        self.legColorOptions = None
+        self.legColorLabel = None
         self.doneButton = None
 
         geom.removeNode()
@@ -226,19 +232,15 @@ class CustomizeScreen(DirectFrame):
         genders = ['Boy', 'Girl']
         gMap = {'m': genders[0], 'f': genders[1]}
         gIndex = gMap.get(self.dna.gender)
-        self.genderOptions = DirectOptionMenu(parent=self, text_font=FONT, scale=0.07, command=self.__selectGender,
-                                              popupMarker_relief=None,
-                                              initialitem=gIndex, items=genders, highlightColor=(0.65, 0.65, 0.65, 1),
-                                              pos=(1.15, 0, 0.55))
+        self.genderOptions = CustomizeOption(parent=self, command=self.__selectGender, initialitem=gIndex,
+                                             items=genders, pos=(1.15, 0, 0.55))
         self.genderLabel = DirectLabel(parent=self.genderOptions, relief=None, text_font=FONT, text='Gender:',
                                        text_scale=0.85, pos=(-1.76, 0, 0))
 
         species = ['Bear', 'Cat', 'Dog', 'Duck', 'Horse', 'Monkey', 'Mouse', 'Pig', 'Rabbit']
         sIndex = species.index(code2name.get(self.dna.head[0]).capitalize())
-        self.speciesOptions = DirectOptionMenu(parent=self, text_font=FONT, scale=0.07, command=self.__selectHead,
-                                               popupMarker_relief=None,
-                                               initialitem=sIndex, items=species, highlightColor=(0.65, 0.65, 0.65, 1),
-                                               pos=(1.15, 0, 0.4))
+        self.speciesOptions = CustomizeOption(parent=self, command=self.__selectHead, initialitem=sIndex,
+                                              items=species, pos=(1.15, 0, 0.4))
         self.speciesLabel = DirectLabel(parent=self.speciesOptions, relief=None, text_font=FONT, text='Species:',
                                         text_scale=0.85, pos=(-1.76, 0, 0))
 
@@ -246,18 +248,14 @@ class CustomizeScreen(DirectFrame):
         types = {'s': headOptions[0], 'l': headOptions[1]}
         hIndex = headOptions.index(types.get(self.dna.head[1]))
 
-        self.headOptions = DirectOptionMenu(parent=self, text_font=FONT, scale=0.07, command=self.__selectHeadSize,
-                                            popupMarker_relief=None,
-                                            initialitem=hIndex, items=headOptions, highlightColor=(0.65, 0.65, 0.65, 1),
-                                            pos=(1.15, 0, 0.25))
+        self.headOptions = CustomizeOption(parent=self, command=self.__selectHeadSize, initialitem=hIndex,
+                                           items=headOptions, pos=(1.15, 0, 0.25))
         self.headLabel = DirectLabel(parent=self.headOptions, relief=None, text_font=FONT, text='Head Size:',
                                      text_scale=0.85, pos=(-2.14, 0, 0))
 
         mIndex = headOptions.index(types.get(self.dna.head[2]))
-        self.muzzleOptions = DirectOptionMenu(parent=self, text_font=FONT, scale=0.07, command=self.__selectMuzzleSize,
-                                              popupMarker_relief=None,
-                                              initialitem=mIndex, items=headOptions,
-                                              highlightColor=(0.65, 0.65, 0.65, 1), pos=(1.15, 0, 0.1))
+        self.muzzleOptions = CustomizeOption(parent=self, command=self.__selectMuzzleSize, initialitem=mIndex,
+                                             items=headOptions, pos=(1.15, 0, 0.1))
         self.muzzleLabel = DirectLabel(parent=self.muzzleOptions, relief=None, text_font=FONT, text='Muzzle Size:',
                                        text_scale=0.85, pos=(-2.5, 0, 0))
 
@@ -265,52 +263,43 @@ class CustomizeScreen(DirectFrame):
         legType = {'s': 'Small', 'm': 'Medium', 'l': 'Long'}
         lIndex = legs.index(legType.get(self.dna.legs))
 
-        self.legOptions = DirectOptionMenu(parent=self, text_font=FONT, scale=0.07, command=self.__selectLegs,
-                                           popupMarker_relief=None,
-                                           initialitem=lIndex, items=legs,
-                                           highlightColor=(0.65, 0.65, 0.65, 1), pos=(1.15, 0, -0.05))
+        self.legOptions = CustomizeOption(parent=self, command=self.__selectLegs, initialitem=lIndex, items=legs,
+                                          pos=(1.15, 0, -0.05))
         self.legLabel = DirectLabel(parent=self.legOptions, relief=None, text_font=FONT, text='Leg Length:',
                                     text_scale=0.85, pos=(-2.35, 0, 0))
 
         tIndex = legs.index(legType.get(self.dna.torso[0]))
-        self.torsoOptions = DirectOptionMenu(parent=self, text_font=FONT, scale=0.07, command=self.__selectTorso,
-                                             popupMarker_relief=None,
-                                             initialitem=tIndex, items=legs,
-                                             highlightColor=(0.65, 0.65, 0.65, 1), pos=(1.15, 0, -0.2))
+        self.torsoOptions = CustomizeOption(parent=self, command=self.__selectTorso, initialitem=tIndex, items=legs,
+                                            pos=(1.15, 0, -0.2))
         self.torsoLabel = DirectLabel(parent=self.torsoOptions, relief=None, text_font=FONT, text='Torso Length:',
                                       text_scale=0.85, pos=(-2.69, 0, 0))
 
-        self.gloveOptions = DirectOptionMenu(parent=self, text_font=FONT, scale=0.07, command=self.__selectGloves,
-                                             popupMarker_relief=None,
-                                             initialitem=self.dna.gloveColor - 1, items=ToonDNA.NumToColor[1:],
-                                             highlightColor=(0.65, 0.65, 0.65, 1), pos=(1.15, 0, -0.35))
+        self.gloveOptions = CustomizeOption(parent=self, command=self.__selectGloves,
+                                            initialitem=self.dna.gloveColor - 1, items=ToonDNA.NumToColor[1:],
+                                            pos=(1.15, 0, -0.35))
         self.gloveLabel = DirectLabel(parent=self.gloveOptions, relief=None, text_font=FONT, text='Glove Color:',
                                       text_scale=0.85, pos=(-2.54, 0, 0))
 
-        self.headColorOptions = DirectOptionMenu(parent=self, text_font=FONT, scale=0.07, command=self.__choseHeadColor,
-                                                 popupMarker_relief=None,
-                                                 initialitem=self.dna.headColor - 1, items=ToonDNA.NumToColor[1:],
-                                                 highlightColor=(0.65, 0.65, 0.65, 1), pos=(1.15, 0, -0.5))
+        self.headColorOptions = CustomizeOption(parent=self, command=self.__choseHeadColor,
+                                                initialitem=self.dna.headColor - 1, items=ToonDNA.NumToColor[1:],
+                                                pos=(1.15, 0, -0.5))
         self.headColorLabel = DirectLabel(parent=self.headColorOptions, relief=None,
                                           text_font=FONT, text='Head Color:',
                                           text_scale=0.85, pos=(-2.54, 0, 0))
 
-        self.armColorOptions = DirectOptionMenu(parent=self, text_font=FONT, scale=0.07, command=self.__choseArmColor,
-                                                popupMarker_relief=None,
-                                                initialitem=self.dna.armColor - 1, items=ToonDNA.NumToColor[1:],
-                                                highlightColor=(0.65, 0.65, 0.65, 1), pos=(1.15, 0, -0.65))
+        self.armColorOptions = CustomizeOption(parent=self, command=self.__choseArmColor,
+                                               initialitem=self.dna.armColor - 1, items=ToonDNA.NumToColor[1:],
+                                               pos=(1.15, 0, -0.65))
         self.armColorLabel = DirectLabel(parent=self.armColorOptions, relief=None,
                                          text_font=FONT, text='Arm Color:',
                                          text_scale=0.85, pos=(-2.54, 0, 0))
 
-        self.legColorOptions = DirectOptionMenu(parent=self, text_font=FONT, scale=0.07, command=self.__choseLegColor,
-                                                popupMarker_relief=None,
-                                                initialitem=self.dna.legColor - 1, items=ToonDNA.NumToColor[1:],
-                                                highlightColor=(0.65, 0.65, 0.65, 1), pos=(1.15, 0, -0.8))
+        self.legColorOptions = CustomizeOption(parent=self, command=self.__choseLegColor,
+                                               initialitem=self.dna.legColor - 1, items=ToonDNA.NumToColor[1:],
+                                               pos=(1.15, 0, -0.8))
         self.legColorLabel = DirectLabel(parent=self.legColorOptions, relief=None,
                                          text_font=FONT, text='Leg Color:',
                                          text_scale=0.85, pos=(-2.54, 0, 0))
-
 
         buttonModels = loader.loadModel('phase_3.5/models/gui/inventory_gui')
         upButton = buttonModels.find('**//InventoryButtonUp')
@@ -382,6 +371,30 @@ class CustomizeScreen(DirectFrame):
         if self.gloveOptions:
             self.gloveOptions.destroy()
             self.gloveOptions = None
+
+        if self.headColorOptions:
+            self.headColorOptions.destroy()
+            self.headColorOptions = None
+
+        if self.headColorLabel:
+            self.headColorLabel.destroy()
+            self.headColorLabel = None
+
+        if self.armColorOptions:
+            self.armColorOptions.destroy()
+            self.armColorOptions = None
+
+        if self.armColorLabel:
+            self.armColorLabel.destroy()
+            self.armColorLabel = None
+
+        if self.legColorOptions:
+            self.legColorOptions.destroy()
+            self.legColorOptions = None
+
+        if self.legColorLabel:
+            self.legColorLabel.destroy()
+            self.legColorLabel = None
 
         if self.doneButton:
             self.doneButton.destroy()
