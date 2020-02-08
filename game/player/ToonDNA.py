@@ -2022,7 +2022,7 @@ class ToonDNA:
         if self.type == 't':
             # hackfix
             if self.head not in toonHeadTypes:
-                self.head = difflib.get_close_matches(self.head[:-1])
+                self.head = difflib.get_close_matches(self.head[:-1], toonHeadTypes)
 
             headIndex = toonHeadTypes.index(self.head)
             torsoIndex = toonTorsoTypes.index(self.torso)
