@@ -1,53 +1,17 @@
 from pandac.PandaModules import *
 from direct.directnotify.DirectNotifyGlobal import *
 import random
+import difflib
 from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 notify = directNotify.newCategory('ToonDNA')
-toonSpeciesTypes = ['d',
-                    'c',
-                    'h',
-                    'm',
-                    'r',
-                    'f',
-                    'p',
-                    'b',
-                    's']
-toonHeadTypes = ['dls',
-                 'dss',
-                 'dsl',
-                 'dll',
-                 'cls',
-                 'css',
-                 'csl',
-                 'cll',
-                 'hls',
-                 'hss',
-                 'hsl',
-                 'hll',
-                 'mls',
-                 'mss',
-                 'rls',
-                 'rss',
-                 'rsl',
-                 'rll',
-                 'fls',
-                 'fss',
-                 'fsl',
-                 'fll',
-                 'pls',
-                 'pss',
-                 'psl',
-                 'pll',
-                 'bls',
-                 'bss',
-                 'bsl',
-                 'bll',
-                 'sls',
-                 'sss',
-                 'ssl',
-                 'sll']
+toonSpeciesTypes = ['d', 'c', 'h', 'm', 'r', 'f', 'p', 'b', 's']
+toonHeadTypes = ['dls', 'dss', 'dsl', 'dll', 'cls', 'css', 'csl', 'cll',
+                 'hls', 'hss', 'hsl', 'hll', 'mls', 'mss', 'rls', 'rss',
+                 'rsl', 'rll', 'fls', 'fss', 'fsl', 'fll', 'pls', 'pss',
+                 'psl', 'pll', 'bls', 'bss', 'bsl', 'bll', 'sls', 'sss',
+                 'ssl', 'sll']
 
 
 def getHeadList(species):
@@ -94,86 +58,17 @@ def getSpeciesName(head):
     return speciesName
 
 
-toonHeadAnimalIndices = [0,
-                         4,
-                         8,
-                         12,
-                         14,
-                         18,
-                         22,
-                         26,
-                         30]
-toonHeadAnimalIndicesTrial = [0,
-                              4,
-                              12,
-                              14,
-                              18,
-                              30]
-allToonHeadAnimalIndices = [0,
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6,
-                            7,
-                            8,
-                            9,
-                            10,
-                            11,
-                            12,
-                            13,
-                            14,
-                            15,
-                            16,
-                            17,
-                            18,
-                            19,
-                            20,
-                            21,
-                            22,
-                            23,
-                            24,
-                            25,
-                            26,
-                            27,
-                            28,
-                            29,
-                            30,
-                            31,
-                            32,
-                            33]
-allToonHeadAnimalIndicesTrial = [0,
-                                 1,
-                                 2,
-                                 3,
-                                 4,
-                                 5,
-                                 6,
-                                 7,
-                                 12,
-                                 13,
-                                 14,
-                                 15,
-                                 16,
-                                 17,
-                                 18,
-                                 19,
-                                 20,
-                                 21,
-                                 30,
-                                 31,
-                                 32,
-                                 33]
-toonTorsoTypes = ['ss',
-                  'ms',
-                  'ls',
-                  'sd',
-                  'md',
-                  'ld',
-                  's',
-                  'm',
-                  'l']
+toonHeadAnimalIndices = [0, 4, 8, 12, 14, 18, 22, 26, 30]
+toonHeadAnimalIndicesTrial = [0, 4, 12, 14, 18, 30]
+allToonHeadAnimalIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8,
+                            9, 10, 11, 12, 13, 14, 15,
+                            16, 17, 18, 19, 20, 21, 22,
+                            23, 24, 25, 26, 27, 28, 29,
+                            30, 31, 32, 33]
+allToonHeadAnimalIndicesTrial = [0, 1, 2, 3, 4, 5, 6, 7, 12, 13,
+                                 14, 15, 16, 17, 18, 19, 20, 21,
+                                 30, 31, 32, 33]
+toonTorsoTypes = ['ss', 'ms', 'ls', 'sd', 'md', 'ld', 's', 'm', 'l']
 toonLegTypes = ['s', 'm', 'l']
 Shirts = ['phase_3/maps/desat_shirt_1.jpg',
           'phase_3/maps/desat_shirt_2.jpg',
@@ -341,21 +236,8 @@ BoyShirts = [(0, 0),
              (17, 0),
              (18, 12),
              (19, 13)]
-GirlShirts = [(0, 0),
-              (1, 1),
-              (2, 2),
-              (3, 3),
-              (5, 5),
-              (6, 6),
-              (7, 7),
-              (9, 9),
-              (12, 0),
-              (13, 11),
-              (15, 11),
-              (16, 0),
-              (20, 0),
-              (21, 0),
-              (22, 0)]
+GirlShirts = [(0, 0), (1, 1), (2, 2), (3, 3), (5, 5), (6, 6), (7, 7), (9, 9),
+              (12, 0), (13, 11), (15, 11), (16, 0), (20, 0), (21, 0), (22, 0)]
 
 
 def isValidBoyShirt(index):
@@ -635,37 +517,42 @@ GirlBottoms = [('phase_3/maps/desat_skirt_1.jpg', SKIRT),
                ('phase_4/maps/tt_t_chr_avt_skirt_golf04.jpg', SKIRT),
                ('phase_4/maps/tt_t_chr_avt_skirt_racing04.jpg', SKIRT),
                ('phase_4/maps/tt_t_chr_avt_skirt_racing05.jpg', SKIRT)]
-ClothesColors = [VBase4(0.933594, 0.265625, 0.28125, 1.0),
-                 VBase4(0.863281, 0.40625, 0.417969, 1.0),
-                 VBase4(0.710938, 0.234375, 0.4375, 1.0),
-                 VBase4(0.992188, 0.480469, 0.167969, 1.0),
-                 VBase4(0.996094, 0.898438, 0.320312, 1.0),
-                 VBase4(0.550781, 0.824219, 0.324219, 1.0),
-                 VBase4(0.242188, 0.742188, 0.515625, 1.0),
-                 VBase4(0.433594, 0.90625, 0.835938, 1.0),
-                 VBase4(0.347656, 0.820312, 0.953125, 1.0),
-                 VBase4(0.191406, 0.5625, 0.773438, 1.0),
-                 VBase4(0.285156, 0.328125, 0.726562, 1.0),
-                 VBase4(0.460938, 0.378906, 0.824219, 1.0),
-                 VBase4(0.546875, 0.28125, 0.75, 1.0),
-                 VBase4(0.570312, 0.449219, 0.164062, 1.0),
-                 VBase4(0.640625, 0.355469, 0.269531, 1.0),
-                 VBase4(0.996094, 0.695312, 0.511719, 1.0),
-                 VBase4(0.832031, 0.5, 0.296875, 1.0),
-                 VBase4(0.992188, 0.480469, 0.167969, 1.0),
-                 VBase4(0.550781, 0.824219, 0.324219, 1.0),
-                 VBase4(0.433594, 0.90625, 0.835938, 1.0),
-                 VBase4(0.347656, 0.820312, 0.953125, 1.0),
-                 VBase4(0.96875, 0.691406, 0.699219, 1.0),
-                 VBase4(0.996094, 0.957031, 0.597656, 1.0),
-                 VBase4(0.855469, 0.933594, 0.492188, 1.0),
-                 VBase4(0.558594, 0.589844, 0.875, 1.0),
-                 VBase4(0.726562, 0.472656, 0.859375, 1.0),
-                 VBase4(0.898438, 0.617188, 0.90625, 1.0),
-                 VBase4(1.0, 1.0, 1.0, 1.0),
-                 VBase4(0.0, 0.2, 0.956862, 1.0),
-                 VBase4(0.972549, 0.094117, 0.094117, 1.0),
-                 VBase4(0.447058, 0.0, 0.90196, 1.0)]
+ClothesColors = [VBase4(0.933594, 0.265625, 0.28125, 1.0),  # Bright Red
+                 VBase4(0.863281, 0.40625, 0.417969, 1.0),  # Red
+                 VBase4(0.710938, 0.234375, 0.4375, 1.0),  # Maroon
+                 VBase4(0.992188, 0.480469, 0.167969, 1.0),  # Orange
+                 VBase4(0.996094, 0.898438, 0.320312, 1.0),  # Yellow
+                 VBase4(0.550781, 0.824219, 0.324219, 1.0),  # Lime
+                 VBase4(0.242188, 0.742188, 0.515625, 1.0),  # Sea Green
+                 VBase4(0.433594, 0.90625, 0.835938, 1.0),  # Light Blue
+                 VBase4(0.347656, 0.820312, 0.953125, 1.0),  # Aqua
+                 VBase4(0.191406, 0.5625, 0.773438, 1.0),   # Blue
+                 VBase4(0.285156, 0.328125, 0.726562, 1.0),  # Royal Blue
+                 VBase4(0.460938, 0.378906, 0.824219, 1.0),  # Slate Blue
+                 VBase4(0.546875, 0.28125, 0.75, 1.0),  # Purple
+                 VBase4(0.570312, 0.449219, 0.164062, 1.0),  # Sienna
+                 VBase4(0.640625, 0.355469, 0.269531, 1.0),  # Brown
+                 VBase4(0.996094, 0.695312, 0.511719, 1.0),  # Tan
+                 VBase4(0.832031, 0.5, 0.296875, 1.0),  # Coral
+                 VBase4(0.992188, 0.480469, 0.167969, 1.0),  # Orange
+                 VBase4(0.550781, 0.824219, 0.324219, 1.0),  # Lime
+                 VBase4(0.433594, 0.90625, 0.835938, 1.0),  # Light Blue
+                 VBase4(0.347656, 0.820312, 0.953125, 1.0),  # Aqua
+                 VBase4(0.96875, 0.691406, 0.699219, 1.0),  # Peach
+                 VBase4(0.996094, 0.957031, 0.597656, 1.0),  # Cream
+                 VBase4(0.855469, 0.933594, 0.492188, 1.0),  # Citrine
+                 VBase4(0.558594, 0.589844, 0.875, 1.0),  # Periwinkle
+                 VBase4(0.726562, 0.472656, 0.859375, 1.0),  # Lavender
+                 VBase4(0.898438, 0.617188, 0.90625, 1.0),  # Pink
+                 VBase4(1.0, 1.0, 1.0, 1.0),  # White
+                 VBase4(0.0, 0.2, 0.956862, 1.0),  # Dark Blue
+                 VBase4(0.972549, 0.094117, 0.094117, 1.0),  # Scarlet
+                 VBase4(0.3, 0.3, 0.35, 1.0)]  # Black
+ClothesColorNames = ['Bright Red', 'Red', 'Maroon', 'Orange', 'Yellow', 'Lime', 'Sea Green', 'Light Blue', 'Aqua',
+                     'Blue', 'Royal Blue', 'Slate Blue', 'Purple', 'Sienna', 'Brown', 'Tan', 'Coral', 'Orange',
+                     'Lime', 'Light Blue', 'Aqua', 'Peach', 'Cream', 'Citrine', 'Periwinkle', 'Lavender', 'Pink',
+                     'White']
+
 ShirtStyles = {'bss1': [0, 0, [(0, 0),
                                (1, 1),
                                (2, 2),
@@ -1234,143 +1121,30 @@ ShirtStyles = {'bss1': [0, 0, [(0, 0),
                'jb_2': [113, 100, [(27, 27)]],
                'ugcms': [117, 104, [(27, 27)]],
                'lb_1': [119, 106, [(27, 27)]]}
-BottomStyles = {'bbs1': [0, [0,
-                             1,
-                             2,
-                             4,
-                             6,
-                             9,
-                             10,
-                             11,
-                             12,
-                             13,
-                             14,
-                             15,
-                             16,
-                             17,
-                             18,
-                             19,
-                             20]],
-                'bbs2': [1, [0,
-                             1,
-                             2,
-                             4,
-                             6,
-                             9,
-                             10,
-                             11,
-                             12,
-                             13,
-                             14,
-                             15,
-                             16,
-                             17,
-                             18,
-                             19,
-                             20]],
-                'bbs3': [2, [0,
-                             1,
-                             2,
-                             4,
-                             6,
-                             9,
-                             10,
-                             11,
-                             12,
-                             13,
-                             14,
-                             15,
-                             16,
-                             17,
-                             18,
-                             19,
-                             20]],
-                'bbs4': [3, [0,
-                             1,
-                             2,
-                             4,
-                             6,
-                             8,
-                             9,
-                             11,
-                             12,
-                             13,
-                             15,
-                             16,
-                             17,
-                             18,
-                             19,
-                             20,
-                             27]],
-                'bbs5': [4, [0,
-                             1,
-                             2,
-                             4,
-                             6,
-                             9,
-                             10,
-                             11,
-                             12,
-                             13,
-                             14,
-                             15,
-                             16,
-                             17,
-                             18,
-                             19,
-                             20]],
-                'bbs6': [5, [0,
-                             1,
-                             2,
-                             4,
-                             6,
-                             9,
-                             10,
-                             11,
-                             12,
-                             14,
-                             15,
-                             16,
-                             17,
-                             18,
-                             19,
-                             20,
-                             27]],
-                'bbs7': [6, [0,
-                             1,
-                             2,
-                             4,
-                             6,
-                             9,
-                             10,
-                             11,
-                             12,
-                             13,
-                             14,
-                             15,
-                             16,
-                             17,
-                             18,
-                             20,
-                             27]],
-                'bbs8': [7, [0,
-                             1,
-                             2,
-                             4,
-                             6,
-                             9,
-                             10,
-                             11,
-                             12,
-                             13,
-                             14,
-                             15,
-                             16,
-                             17,
-                             18,
-                             19,
-                             20,
-                             27]],
+BottomStyles = {'bbs1': [0, [0, 1, 2, 4, 6, 9,
+                             10, 11, 12, 13, 14,
+                             15, 16, 17, 18, 19, 20]],
+                'bbs2': [1, [0, 1, 2, 4, 6, 9, 10,
+                             11, 12, 13, 14, 15,
+                             16, 17, 18, 19, 20]],
+                'bbs3': [2, [0, 1, 2, 4, 6, 9,
+                             10, 11, 12, 13, 14,
+                             15, 16, 17, 18, 19, 20]],
+                'bbs4': [3, [0, 1, 2, 4, 6, 8, 9,
+                             11, 12, 13, 15, 16,
+                             17, 18, 19, 20, 27]],
+                'bbs5': [4, [0, 1, 2, 4, 6, 9,
+                             10, 11, 12, 13, 14,
+                             15, 16, 17, 18, 19, 20]],
+                'bbs6': [5, [0, 1, 2, 4, 6, 9, 10,
+                             11, 12, 14, 15, 16,
+                             17, 18, 19, 20, 27]],
+                'bbs7': [6, [0, 1, 2, 4, 6, 9, 10,
+                             11, 12, 13, 14, 15, 16,
+                             17, 18, 20, 27]],
+                'bbs8': [7, [0, 1, 2, 4, 6, 9,
+                             10, 11, 12, 13, 14,
+                             15, 16, 17, 18, 19, 20, 27]],
                 'vd_bs1': [8, [27]],
                 'vd_bs2': [23, [27]],
                 'vd_bs3': [24, [27]],
@@ -1391,192 +1165,38 @@ BottomStyles = {'bbs1': [0, [0,
                 'hw_bs5': [49, [27]],
                 'hw_bs6': [50, [27]],
                 'hw_bs7': [51, [27]],
-                'gsk1': [0, [0,
-                             1,
-                             2,
-                             3,
-                             4,
-                             5,
-                             6,
-                             7,
-                             8,
-                             9,
-                             11,
-                             12,
-                             21,
-                             22,
-                             23,
-                             24,
-                             25,
-                             26,
-                             27]],
-                'gsk2': [1, [0,
-                             1,
-                             2,
-                             3,
-                             4,
-                             5,
-                             6,
-                             7,
-                             8,
-                             9,
-                             11,
-                             12,
-                             21,
-                             22,
-                             23,
-                             24,
-                             25,
-                             26]],
-                'gsk3': [2, [0,
-                             1,
-                             2,
-                             3,
-                             4,
-                             5,
-                             6,
-                             7,
-                             8,
-                             9,
-                             11,
-                             12,
-                             21,
-                             22,
-                             23,
-                             24,
-                             25,
-                             26]],
-                'gsk4': [3, [0,
-                             1,
-                             2,
-                             3,
-                             4,
-                             5,
-                             6,
-                             7,
-                             8,
-                             9,
-                             11,
-                             12,
-                             21,
-                             22,
-                             23,
-                             24,
-                             25,
-                             26]],
-                'gsk5': [4, [0,
-                             1,
-                             2,
-                             3,
-                             4,
-                             5,
-                             6,
-                             7,
-                             8,
-                             9,
-                             11,
-                             12,
-                             21,
-                             22,
-                             23,
-                             24,
-                             25,
-                             26]],
-                'gsk6': [7, [0,
-                             1,
-                             2,
-                             3,
-                             4,
-                             5,
-                             6,
-                             7,
-                             8,
-                             9,
-                             11,
-                             12,
-                             21,
-                             22,
-                             23,
-                             24,
-                             25,
-                             26,
-                             27]],
-                'gsk7': [8, [0,
-                             1,
-                             2,
-                             3,
-                             4,
-                             5,
-                             6,
-                             7,
-                             8,
-                             9,
-                             11,
-                             12,
-                             21,
-                             22,
-                             23,
-                             24,
-                             25,
-                             26,
-                             27]],
-                'gsh1': [5, [0,
-                             1,
-                             2,
-                             3,
-                             4,
-                             5,
-                             6,
-                             7,
-                             8,
-                             9,
-                             11,
-                             12,
-                             21,
-                             22,
-                             23,
-                             24,
-                             25,
-                             26,
-                             27]],
-                'gsh2': [6, [0,
-                             1,
-                             2,
-                             3,
-                             4,
-                             5,
-                             6,
-                             7,
-                             8,
-                             9,
-                             11,
-                             12,
-                             21,
-                             22,
-                             23,
-                             24,
-                             25,
-                             26,
-                             27]],
-                'gsh3': [9, [0,
-                             1,
-                             2,
-                             3,
-                             4,
-                             5,
-                             6,
-                             7,
-                             8,
-                             9,
-                             11,
-                             12,
-                             21,
-                             22,
-                             23,
-                             24,
-                             25,
-                             26,
-                             27]],
+                'gsk1': [0, [0, 1, 2, 3, 4,
+                             5, 6, 7, 8, 9,
+                             11, 12, 21, 22,
+                             23, 24, 25, 26, 27]],
+                'gsk2': [1, [0, 1, 2, 3, 4, 5, 6,
+                             7, 8, 9, 11, 12, 21,
+                             22, 23, 24, 25, 26]],
+                'gsk3': [2, [0, 1, 2, 3, 4, 5, 6,
+                             7, 8, 9, 11, 12, 21,
+                             22, 23, 24, 25, 26]],
+                'gsk4': [3, [0, 1, 2, 3, 4, 5, 6, 7,
+                             8, 9, 11, 12, 21,
+                             22, 23, 24, 25, 26]],
+                'gsk5': [4, [0, 1, 2, 3, 4, 5,
+                             6, 7, 8, 9, 11, 12,
+                             21, 22, 23, 24, 25, 26]],
+                'gsk6': [7, [0, 1, 2, 3, 4, 5,
+                             6, 7, 8, 9, 11, 12, 21,
+                             22, 23, 24, 25, 26, 27]],
+                'gsk7': [8, [0, 1, 2, 3, 4, 5,
+                             6, 7, 8, 9, 11, 12,
+                             21, 22, 23, 24, 25, 26, 27]],
+                'gsh1': [5, [0, 1, 2, 3, 4, 5,
+                             6, 7, 8, 9, 11, 12, 21,
+                             22, 23, 24, 25, 26, 27]],
+                'gsh2': [6, [0, 1, 2, 3, 4, 5,
+                             6, 7, 8, 9, 11, 12, 21,
+                             22, 23, 24, 25, 26, 27]],
+                'gsh3': [9, [0, 1, 2, 3, 4,
+                             5, 6, 7, 8, 9,
+                             11, 12, 21, 22,
+                             23, 24, 25, 26, 27]],
                 'c_gsk1': [10, [27]],
                 'c_gsk2': [11, [27]],
                 'c_gsk3': [12, [27]],
@@ -1745,10 +1365,7 @@ def getRandomTop(gender, tailorId=MAKE_A_TOON, generator=None):
         style = generator.choice(collection[GIRL_SHIRTS])
     styleList = ShirtStyles[style]
     colors = generator.choice(styleList[2])
-    return (styleList[0],
-            colors[0],
-            styleList[1],
-            colors[1])
+    return styleList[0], colors[0], styleList[1], colors[1]
 
 
 def getRandomBottom(gender, tailorId=MAKE_A_TOON, generator=None, girlBottomType=None):
@@ -1771,7 +1388,7 @@ def getRandomBottom(gender, tailorId=MAKE_A_TOON, generator=None, girlBottomType
         notify.error('Bad girlBottomType: %s' % girlBottomType)
     styleList = BottomStyles[style]
     color = generator.choice(styleList[1])
-    return (styleList[0], color)
+    return styleList[0], color
 
 
 def getRandomGirlBottom(type):
@@ -1796,12 +1413,10 @@ def getRandomGirlBottomAndColor(type):
             bottoms.append(bottom)
 
     style = BottomStyles[random.choice(bottoms)]
-    return (style[0], random.choice(style[1]))
+    return style[0], random.choice(style[1])
 
 
-def getRandomizedTops(gender, tailorId=MAKE_A_TOON, generator=None):
-    if generator is None:
-        generator = random
+def getRandomizedTops(gender, tailorId=MAKE_A_TOON):
     collection = TailorCollections[tailorId]
     if gender == 'm':
         collection = collection[BOY_SHIRTS][:]
@@ -1813,17 +1428,12 @@ def getRandomizedTops(gender, tailorId=MAKE_A_TOON, generator=None):
         colors = ShirtStyles[style][2][:]
         random.shuffle(colors)
         for color in colors:
-            tops.append((ShirtStyles[style][0],
-                         color[0],
-                         ShirtStyles[style][1],
-                         color[1]))
+            tops.append((ShirtStyles[style][0], color[0], ShirtStyles[style][1], color[1]))
 
     return tops
 
 
-def getRandomizedBottoms(gender, tailorId=MAKE_A_TOON, generator=None):
-    if generator is None:
-        generator = random
+def getRandomizedBottoms(gender, tailorId=MAKE_A_TOON):
     collection = TailorCollections[tailorId]
     if gender == 'm':
         collection = collection[BOY_SHORTS][:]
@@ -1890,23 +1500,9 @@ def getAllBottoms(gender, output='both'):
     bottoms = []
     for style in list(BottomStyles.keys()):
         if gender == 'm':
-            if style[0] == 'g' or style[:3] == 'c_g' or style[:4] == 'vd_g' or style[:4] == 'sd_g' or style[
-                                                                                                      :4] == 'j4_g' or style[
-                                                                                                                       :4] == 'pj_g' or style[
-                                                                                                                                        :4] == 'wh_g' or style[
-                                                                                                                                                         :4] == 'sa_g' or style[
-                                                                                                                                                                          :4] == 'sc_g' or style[
-                                                                                                                                                                                           :5] == 'sil_g' or style[
-                                                                                                                                                                                                             :4] == 'hw_g':
+            if style[0] == 'g' or style[:3] == 'c_g' or style[:4] == 'vd_g' or style[:4] == 'sd_g' or style[:4] == 'j4_g' or style[:4] == 'pj_g' or style[:4] == 'wh_g' or style[:4] == 'sa_g' or style[:4] == 'sc_g' or style[:5] == 'sil_g' or style[:4] == 'hw_g':
                 continue
-        elif style[0] == 'b' or style[:3] == 'c_b' or style[:4] == 'vd_b' or style[:4] == 'sd_b' or style[
-                                                                                                    :4] == 'j4_b' or style[
-                                                                                                                     :4] == 'pj_b' or style[
-                                                                                                                                      :4] == 'wh_b' or style[
-                                                                                                                                                       :4] == 'sa_b' or style[
-                                                                                                                                                                        :4] == 'sc_b' or style[
-                                                                                                                                                                                         :5] == 'sil_b' or style[
-                                                                                                                                                                                                           :4] == 'hw_b':
+        elif style[0] == 'b' or style[:3] == 'c_b' or style[:4] == 'vd_b' or style[:4] == 'sd_b' or style[:4] == 'j4_b' or style[:4] == 'pj_b' or style[:4] == 'wh_b' or style[:4] == 'sa_b' or style[:4] == 'sc_b' or style[:5] == 'sil_b' or style[:4] == 'hw_b':
             continue
         bottomIdx = BottomStyles[style][0]
         if gender == 'f':
@@ -1920,108 +1516,48 @@ def getAllBottoms(gender, output='both'):
     return bottoms
 
 
-allColorsList = [VBase4(1.0, 1.0, 1.0, 1.0),
-                 VBase4(0.96875, 0.691406, 0.699219, 1.0),
-                 VBase4(0.933594, 0.265625, 0.28125, 1.0),
-                 VBase4(0.863281, 0.40625, 0.417969, 1.0),
-                 VBase4(0.710938, 0.234375, 0.4375, 1.0),
-                 VBase4(0.570312, 0.449219, 0.164062, 1.0),
-                 VBase4(0.640625, 0.355469, 0.269531, 1.0),
-                 VBase4(0.996094, 0.695312, 0.511719, 1.0),
-                 VBase4(0.832031, 0.5, 0.296875, 1.0),
-                 VBase4(0.992188, 0.480469, 0.167969, 1.0),
-                 VBase4(0.996094, 0.898438, 0.320312, 1.0),
-                 VBase4(0.996094, 0.957031, 0.597656, 1.0),
-                 VBase4(0.855469, 0.933594, 0.492188, 1.0),
-                 VBase4(0.550781, 0.824219, 0.324219, 1.0),
-                 VBase4(0.242188, 0.742188, 0.515625, 1.0),
-                 VBase4(0.304688, 0.96875, 0.402344, 1.0),
-                 VBase4(0.433594, 0.90625, 0.835938, 1.0),
-                 VBase4(0.347656, 0.820312, 0.953125, 1.0),
-                 VBase4(0.191406, 0.5625, 0.773438, 1.0),
-                 VBase4(0.558594, 0.589844, 0.875, 1.0),
-                 VBase4(0.285156, 0.328125, 0.726562, 1.0),
-                 VBase4(0.460938, 0.378906, 0.824219, 1.0),
-                 VBase4(0.546875, 0.28125, 0.75, 1.0),
-                 VBase4(0.726562, 0.472656, 0.859375, 1.0),
-                 VBase4(0.898438, 0.617188, 0.90625, 1.0),
-                 VBase4(0.7, 0.7, 0.8, 1.0),
-                 VBase4(0.3, 0.3, 0.35, 1.0)]
-NumToColor = ['White',
- 'Peach',
- 'Bright Red',
- 'Red',
- 'Maroon',
- 'Sienna',
- 'Brown',
- 'Tan',
- 'Coral',
- 'Orange',
- 'Yellow',
- 'Cream',
- 'Citrine',
- 'Lime',
- 'Sea Green',
- 'Green',
- 'Light Blue',
- 'Aqua',
- 'Blue',
- 'Periwinkle',
- 'Royal Blue',
- 'Slate Blue',
- 'Purple',
- 'Lavender',
- 'Pink',
- 'Plum',
- 'Black']
-defaultBoyColorList = [1,
-                       2,
-                       3,
-                       4,
-                       5,
-                       6,
-                       7,
-                       8,
-                       9,
-                       10,
-                       11,
-                       12,
-                       13,
-                       14,
-                       15,
-                       16,
-                       17,
-                       18,
-                       19,
-                       20,
-                       21,
-                       22,
-                       23,
-                       24]
-defaultGirlColorList = [1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,
-                        15,
-                        16,
-                        17,
-                        18,
-                        19,
-                        20,
-                        21,
-                        22,
-                        23,
-                        24]
+allColorsList = [VBase4(1.0, 1.0, 1.0, 1.0),  # White
+                 VBase4(0.96875, 0.691406, 0.699219, 1.0),  # Peach
+                 VBase4(0.933594, 0.265625, 0.28125, 1.0),  # Bright Red
+                 VBase4(0.863281, 0.40625, 0.417969, 1.0),  # Red
+                 VBase4(0.710938, 0.234375, 0.4375, 1.0),  # Maroon
+                 VBase4(0.570312, 0.449219, 0.164062, 1.0),  # Sienna
+                 VBase4(0.640625, 0.355469, 0.269531, 1.0),  # Brown
+                 VBase4(0.996094, 0.695312, 0.511719, 1.0),  # Tan
+                 VBase4(0.832031, 0.5, 0.296875, 1.0),  # Coral
+                 VBase4(0.992188, 0.480469, 0.167969, 1.0),  # Orange
+                 VBase4(0.996094, 0.898438, 0.320312, 1.0),  # Yellow
+                 VBase4(0.996094, 0.957031, 0.597656, 1.0),  # Cream
+                 VBase4(0.855469, 0.933594, 0.492188, 1.0),  # Citrine
+                 VBase4(0.550781, 0.824219, 0.324219, 1.0),  # Lime
+                 VBase4(0.242188, 0.742188, 0.515625, 1.0),  # Sea Green
+                 VBase4(0.304688, 0.96875, 0.402344, 1.0),  # Green
+                 VBase4(0.433594, 0.90625, 0.835938, 1.0),  # Light Blue
+                 VBase4(0.347656, 0.820312, 0.953125, 1.0),  # Aqua
+                 VBase4(0.191406, 0.5625, 0.773438, 1.0),  # Blue
+                 VBase4(0.558594, 0.589844, 0.875, 1.0),  # Periwinkle
+                 VBase4(0.285156, 0.328125, 0.726562, 1.0),  # Royal BLue
+                 VBase4(0.460938, 0.378906, 0.824219, 1.0),  # Slate Blue
+                 VBase4(0.546875, 0.28125, 0.75, 1.0),  # Purple
+                 VBase4(0.726562, 0.472656, 0.859375, 1.0),  # Lavender
+                 VBase4(0.898438, 0.617188, 0.90625, 1.0),  # Pink
+                 VBase4(0.7, 0.7, 0.8, 1.0),  # Grey
+                 VBase4(0.3, 0.3, 0.35, 1.0)]  # Black
+NumToColor = ['White', 'Peach', 'Bright Red', 'Red', 'Maroon', 'Sienna',
+              'Brown', 'Tan', 'Coral', 'Orange', 'Yellow', 'Cream',
+              'Citrine', 'Lime', 'Sea Green', 'Green', 'Light Blue',
+              'Aqua', 'Blue', 'Periwinkle', 'Royal Blue', 'Slate Blue',
+              'Purple', 'Lavender', 'Pink', 'Grey', 'Black']
+defaultBoyColorList = [1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10,
+                       11, 12, 13, 14, 15,
+                       16, 17, 18, 19, 20,
+                       21, 22, 23, 24]
+defaultGirlColorList = [1, 2, 3, 4, 5,
+                       6, 7, 8, 9, 10,
+                       11, 12, 13, 14, 15,
+                       16, 17, 18, 19, 20,
+                       21, 22, 23, 24]
 allColorsListApproximations = [VBase4(round(x[0], 3), round(x[1], 3), round(x[2], 3), round(x[3], 3)) for x in
                                allColorsList]
 allowedColors = set([allColorsListApproximations[x] for x in set(defaultBoyColorList + defaultGirlColorList + [26])])
@@ -2484,6 +2020,10 @@ class ToonDNA:
         dg = PyDatagram()
         dg.addFixedString(self.type, 1)
         if self.type == 't':
+            # hackfix
+            if self.head not in toonHeadTypes:
+                self.head = difflib.get_close_matches(self.head[:-1])
+
             headIndex = toonHeadTypes.index(self.head)
             torsoIndex = toonTorsoTypes.index(self.torso)
             legsIndex = toonLegTypes.index(self.legs)

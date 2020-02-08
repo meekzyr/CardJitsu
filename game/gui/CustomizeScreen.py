@@ -2,6 +2,7 @@ from panda3d.core import *
 from direct.gui import DirectGuiGlobals as DGG
 from direct.gui.DirectButton import DirectButton
 from direct.gui.DirectLabel import DirectLabel
+from direct.gui.DirectEntry import DirectEntry
 from direct.gui.DirectFrame import DirectFrame
 from .CustomizeOption import CustomizeOption
 
@@ -34,7 +35,7 @@ class CustomizeScreen(DirectFrame):
             ('text_font', FONT, None),
             ('text_scale', 0.075, None),
             ('text_pos', (0, 0.65), None),
-            ('pos', (-0.5, 0, 0.16), None)
+            ('pos', (-0.7, 0, 0.16), None)
         )
         self.defineoptions(kw, optiondefs)
         DirectFrame.__init__(self, aspect2d)
@@ -60,6 +61,14 @@ class CustomizeScreen(DirectFrame):
         self.armColorLabel = None
         self.legColorOptions = None
         self.legColorLabel = None
+        self.shirtColorOptions = None
+        self.shirtColorLabel = None
+        self.bottomsColorOptions = None
+        self.bottomsColorLabel = None
+        self.shirtLabel = None
+        self.shirtEntry = None
+        self.shortsLabel = None
+        self.shortsEntry = None
         self.doneButton = None
 
         geom.removeNode()
@@ -153,7 +162,11 @@ class CustomizeScreen(DirectFrame):
     def __selectGloves(self, *args):
         color = args[0]
 
-        index = ToonDNA.NumToColor.index(color)
+        if color == 'White':
+            index = len(ToonDNA.NumToColor) + 1
+        else:
+            index = ToonDNA.NumToColor.index(color)
+
         newDNA = ToonDNA.ToonDNA()
         newDNA.makeFromNetString(self.dna.makeNetString())
         newDNA.updateToonProperties(gloveColor=index)
@@ -198,13 +211,17 @@ class CustomizeScreen(DirectFrame):
 
         newDNA = ToonDNA.ToonDNA()
         newDNA.makeFromNetString(self.dna.makeNetString())
-        newDNA.updateToonProperties(gender=gender)
+        #newDNA.updateToonProperties(gender=gender)
+        newDNA.updateToonProperties(gender=gender, bottomTexture=0)
         self.makeToon(newDNA.makeNetString())
 
     def __choseHeadColor(self, *args):
         color = args[0]
 
-        index = ToonDNA.NumToColor.index(color)
+        if color == 'White':
+            index = len(ToonDNA.NumToColor) + 1
+        else:
+            index = ToonDNA.NumToColor.index(color)
         newDNA = ToonDNA.ToonDNA()
         newDNA.makeFromNetString(self.dna.makeNetString())
         newDNA.updateToonProperties(headColor=index)
@@ -213,7 +230,10 @@ class CustomizeScreen(DirectFrame):
     def __choseArmColor(self, *args):
         color = args[0]
 
-        index = ToonDNA.NumToColor.index(color)
+        if color == 'White':
+            index = len(ToonDNA.NumToColor) + 1
+        else:
+            index = ToonDNA.NumToColor.index(color)
         newDNA = ToonDNA.ToonDNA()
         newDNA.makeFromNetString(self.dna.makeNetString())
         newDNA.updateToonProperties(armColor=index)
@@ -222,10 +242,51 @@ class CustomizeScreen(DirectFrame):
     def __choseLegColor(self, *args):
         color = args[0]
 
-        index = ToonDNA.NumToColor.index(color)
+        if color == 'White':
+            index = len(ToonDNA.NumToColor) + 1
+        else:
+            index = ToonDNA.NumToColor.index(color)
         newDNA = ToonDNA.ToonDNA()
         newDNA.makeFromNetString(self.dna.makeNetString())
         newDNA.updateToonProperties(legColor=index)
+        self.makeToon(newDNA.makeNetString())
+
+    def __choseShirtColor(self, *args):
+        color = args[0]
+        index = ToonDNA.ClothesColorNames.index(color)
+        newDNA = ToonDNA.ToonDNA()
+        newDNA.makeFromNetString(self.dna.makeNetString())
+        newDNA.updateToonProperties(topTextureColor=index, sleeveTextureColor=index)
+        self.makeToon(newDNA.makeNetString())
+
+    def __choseShortsColor(self, *args):
+        color = args[0]
+        index = ToonDNA.ClothesColorNames.index(color)
+        newDNA = ToonDNA.ToonDNA()
+        newDNA.makeFromNetString(self.dna.makeNetString())
+        newDNA.updateToonProperties(bottomTextureColor=index)
+        self.makeToon(newDNA.makeNetString())
+
+    def __changeShirt(self, *args):
+        index = int(args[0])
+        if index not in range(0, len(ToonDNA.Shirts)):
+            return
+
+        newDNA = ToonDNA.ToonDNA()
+        newDNA.makeFromNetString(self.dna.makeNetString())
+        newDNA.updateToonProperties(topTexture=index)
+        self.makeToon(newDNA.makeNetString())
+
+    def __changeShorts(self, *args):
+        index = int(args[0])
+
+        bottoms = ToonDNA.BoyShorts if self.dna.gender == 'm' else ToonDNA.GirlBottoms
+        if index not in range(0, len(bottoms)):
+            return
+
+        newDNA = ToonDNA.ToonDNA()
+        newDNA.makeFromNetString(self.dna.makeNetString())
+        newDNA.updateToonProperties(bottomTexture=index)
         self.makeToon(newDNA.makeNetString())
 
     def load(self):
@@ -233,73 +294,121 @@ class CustomizeScreen(DirectFrame):
         gMap = {'m': genders[0], 'f': genders[1]}
         gIndex = gMap.get(self.dna.gender)
         self.genderOptions = CustomizeOption(parent=self, command=self.__selectGender, initialitem=gIndex,
-                                             items=genders, pos=(1.15, 0, 0.55))
+                                             items=genders, pos=(1.15, 0, 0.7))
         self.genderLabel = DirectLabel(parent=self.genderOptions, relief=None, text_font=FONT, text='Gender:',
-                                       text_scale=0.85, pos=(-1.76, 0, 0))
+                                       text_scale=0.85, pos=(-2.59, 0, 0))
 
         species = ['Bear', 'Cat', 'Dog', 'Duck', 'Horse', 'Monkey', 'Mouse', 'Pig', 'Rabbit']
         sIndex = species.index(code2name.get(self.dna.head[0]).capitalize())
         self.speciesOptions = CustomizeOption(parent=self, command=self.__selectHead, initialitem=sIndex,
-                                              items=species, pos=(1.15, 0, 0.4))
+                                              items=species, pos=(1.15, 0, 0.55))
         self.speciesLabel = DirectLabel(parent=self.speciesOptions, relief=None, text_font=FONT, text='Species:',
-                                        text_scale=0.85, pos=(-1.76, 0, 0))
+                                        text_scale=0.85, pos=(-2.7, 0, 0))
 
         headOptions = ['Short', 'Long']
         types = {'s': headOptions[0], 'l': headOptions[1]}
         hIndex = headOptions.index(types.get(self.dna.head[1]))
 
         self.headOptions = CustomizeOption(parent=self, command=self.__selectHeadSize, initialitem=hIndex,
-                                           items=headOptions, pos=(1.15, 0, 0.25))
+                                           items=headOptions, pos=(1.15, 0, 0.4))
         self.headLabel = DirectLabel(parent=self.headOptions, relief=None, text_font=FONT, text='Head Size:',
-                                     text_scale=0.85, pos=(-2.14, 0, 0))
+                                     text_scale=0.85, pos=(-3.07, 0, 0))
 
         mIndex = headOptions.index(types.get(self.dna.head[2]))
         self.muzzleOptions = CustomizeOption(parent=self, command=self.__selectMuzzleSize, initialitem=mIndex,
-                                             items=headOptions, pos=(1.15, 0, 0.1))
+                                             items=headOptions, pos=(1.15, 0, 0.25))
         self.muzzleLabel = DirectLabel(parent=self.muzzleOptions, relief=None, text_font=FONT, text='Muzzle Size:',
-                                       text_scale=0.85, pos=(-2.5, 0, 0))
+                                       text_scale=0.85, pos=(-3.4, 0, 0))
 
         legs = ['Small', 'Medium', 'Long']
         legType = {'s': 'Small', 'm': 'Medium', 'l': 'Long'}
         lIndex = legs.index(legType.get(self.dna.legs))
 
         self.legOptions = CustomizeOption(parent=self, command=self.__selectLegs, initialitem=lIndex, items=legs,
-                                          pos=(1.15, 0, -0.05))
+                                          pos=(1.15, 0, 0.1))
         self.legLabel = DirectLabel(parent=self.legOptions, relief=None, text_font=FONT, text='Leg Length:',
-                                    text_scale=0.85, pos=(-2.35, 0, 0))
+                                    text_scale=0.85, pos=(-3.21, 0, 0))
 
         tIndex = legs.index(legType.get(self.dna.torso[0]))
         self.torsoOptions = CustomizeOption(parent=self, command=self.__selectTorso, initialitem=tIndex, items=legs,
-                                            pos=(1.15, 0, -0.2))
+                                            pos=(1.15, 0, -0.05))
         self.torsoLabel = DirectLabel(parent=self.torsoOptions, relief=None, text_font=FONT, text='Torso Length:',
-                                      text_scale=0.85, pos=(-2.69, 0, 0))
+                                      text_scale=0.85, pos=(-3.57, 0, 0))
+
+        gloveColor = self.dna.gloveColor
+        length = len(ToonDNA.NumToColor)
+        if gloveColor > length:
+            gloveColor = 0
+        headColor = self.dna.headColor
+        if headColor > length:
+            headColor = 0
+        armColor = self.dna.armColor
+        if armColor > length:
+            armColor = 0
+        legColor = self.dna.legColor
+        if legColor > length:
+            legColor = 0
 
         self.gloveOptions = CustomizeOption(parent=self, command=self.__selectGloves,
-                                            initialitem=self.dna.gloveColor - 1, items=ToonDNA.NumToColor[1:],
-                                            pos=(1.15, 0, -0.35))
+                                            initialitem=gloveColor, items=ToonDNA.NumToColor,
+                                            pos=(1.15, 0, -0.2), image_pos=(1.55, 0, 0.15), text_pos=(-0.13, -.1))
         self.gloveLabel = DirectLabel(parent=self.gloveOptions, relief=None, text_font=FONT, text='Glove Color:',
-                                      text_scale=0.85, pos=(-2.54, 0, 0))
+                                      text_scale=0.85, pos=(-3.35, 0, 0))
 
         self.headColorOptions = CustomizeOption(parent=self, command=self.__choseHeadColor,
-                                                initialitem=self.dna.headColor - 1, items=ToonDNA.NumToColor[1:],
-                                                pos=(1.15, 0, -0.5))
+                                                initialitem=headColor, items=ToonDNA.NumToColor,
+                                                pos=(1.15, 0, -0.35), image_pos=(1.55, 0, 0.15), text_pos=(-0.13, -.1))
         self.headColorLabel = DirectLabel(parent=self.headColorOptions, relief=None,
                                           text_font=FONT, text='Head Color:',
-                                          text_scale=0.85, pos=(-2.54, 0, 0))
+                                          text_scale=0.85, pos=(-3.27, 0, 0))
 
         self.armColorOptions = CustomizeOption(parent=self, command=self.__choseArmColor,
-                                               initialitem=self.dna.armColor - 1, items=ToonDNA.NumToColor[1:],
-                                               pos=(1.15, 0, -0.65))
+                                               initialitem=armColor, items=ToonDNA.NumToColor,
+                                               pos=(1.15, 0, -0.5), image_pos=(1.55, 0, 0.15), text_pos=(-0.13, -.1))
         self.armColorLabel = DirectLabel(parent=self.armColorOptions, relief=None,
                                          text_font=FONT, text='Arm Color:',
-                                         text_scale=0.85, pos=(-2.54, 0, 0))
+                                         text_scale=0.85, pos=(-3.074, 0, 0))
 
         self.legColorOptions = CustomizeOption(parent=self, command=self.__choseLegColor,
-                                               initialitem=self.dna.legColor - 1, items=ToonDNA.NumToColor[1:],
-                                               pos=(1.15, 0, -0.8))
+                                               initialitem=legColor, items=ToonDNA.NumToColor,
+                                               pos=(1.15, 0, -0.65), image_pos=(1.55, 0, 0.15), text_pos=(-0.13, -.1))
         self.legColorLabel = DirectLabel(parent=self.legColorOptions, relief=None,
                                          text_font=FONT, text='Leg Color:',
-                                         text_scale=0.85, pos=(-2.54, 0, 0))
+                                         text_scale=0.85, pos=(-3, 0, 0))
+
+        self.shirtColorOptions = CustomizeOption(parent=self, command=self.__choseShirtColor,
+                                                 initialitem=self.dna.topTexColor-1, items=ToonDNA.ClothesColorNames[1:],
+                                                 pos=(1.15, 0, -0.8), image_pos=(1.55, 0, 0.15), text_pos=(-0.13, -.1))
+        self.shirtColorLabel = DirectLabel(parent=self.shirtColorOptions, relief=None,
+                                           text_font=FONT, text='Shirt Color:',
+                                           text_scale=0.85, pos=(-3, 0, 0))
+
+        self.bottomsColorOptions = CustomizeOption(parent=self, command=self.__choseShortsColor,
+                                                   initialitem=self.dna.botTexColor-1, items=ToonDNA.ClothesColorNames[1:],
+                                                   pos=(1.15, 0, -0.95), image_pos=(1.55, 0, 0.15), text_pos=(-0.13, -.1))
+        self.bottomsColorLabel = DirectLabel(parent=self.bottomsColorOptions, relief=None,
+                                             text_font=FONT, text='Shorts Color:',
+                                             text_scale=0.85, pos=(-3, 0, 0))
+
+        self.shirtEntry = DirectEntry(parent=self, relief=DGG.GROOVE, scale=0.08, pos=(1.6, 0, 0.3),
+                                      borderWidth=(0.05, 0.05), state=DGG.NORMAL, text_font=FONT,
+                                      frameColor=((1, 1, 1, 1), (1, 1, 1, 1), (0.5, 0.5, 0.5, 0.5)),
+                                      text_align=TextNode.ALeft, text_scale=0.8, width=3.5, numLines=1, focus=1,
+                                      backgroundFocus=0, cursorKeys=1, text_fg=(0, 0, 0, 1), suppressMouse=1,
+                                      autoCapitalize=0, command=self.__changeShirt)
+        self.shirtEntry.enterText(str(self.dna.topTex))
+        self.shirtLabel = DirectLabel(parent=self.shirtEntry, relief=None, text_font=FONT,
+                                      text='Shirt:', text_scale=0.85, pos=(1.25, 0, 1.25))
+
+        self.shortsEntry = DirectEntry(parent=self, relief=DGG.GROOVE, scale=0.08, pos=(1.6, 0, 0.0),
+                                       borderWidth=(0.05, 0.05), state=DGG.NORMAL, text_font=FONT,
+                                       frameColor=((1, 1, 1, 1), (1, 1, 1, 1), (0.5, 0.5, 0.5, 0.5)),
+                                       text_align=TextNode.ALeft, text_scale=0.8, width=3.5, numLines=1, focus=1,
+                                       backgroundFocus=0, cursorKeys=1, text_fg=(0, 0, 0, 1), suppressMouse=1,
+                                       autoCapitalize=0, command=self.__changeShorts)
+        self.shortsEntry.enterText(str(self.dna.botTex))
+        self.shortsLabel = DirectLabel(parent=self.shortsEntry, relief=None, text_font=FONT,
+                                      text='Shorts:', text_scale=0.85, pos=(1.25, 0, 1.25))
 
         buttonModels = loader.loadModel('phase_3.5/models/gui/inventory_gui')
         upButton = buttonModels.find('**//InventoryButtonUp')
@@ -308,7 +417,7 @@ class CustomizeScreen(DirectFrame):
         self.doneButton = DirectButton(parent=self, text_font=FONT, text='Done', command=self.__handleDone, scale=0.2,
                                        image=(upButton, downButton, rolloverButton), relief=None,
                                        text_fg=(1, 1, 0.65, 1), pos=(0, 0, -0.94), text_pos=(0, -.23),
-                                       image_color=(1, 0, 0, 1), image_scale=(20, 1, 11), sortOrder=DGG.GEOM_SORT_INDEX)
+                                       image_color=(1, 0, 0, 1), image_scale=(20, 1, 15), sortOrder=DGG.GEOM_SORT_INDEX)
         buttonModels.removeNode()
 
     def __handleDone(self):
@@ -395,6 +504,38 @@ class CustomizeScreen(DirectFrame):
         if self.legColorLabel:
             self.legColorLabel.destroy()
             self.legColorLabel = None
+
+        if self.shirtColorLabel:
+            self.shirtColorLabel.destroy()
+            self.shirtColorLabel = None
+
+        if self.shirtColorOptions:
+            self.shirtColorOptions.destroy()
+            self.shirtColorOptions = None
+
+        if self.bottomsColorLabel:
+            self.bottomsColorLabel.destroy()
+            self.bottomsColorLabel = None
+
+        if self.bottomsColorOptions:
+            self.bottomsColorOptions.destroy()
+            self.bottomsColorOptions = None
+
+        if self.shirtLabel:
+            self.shirtLabel.destroy()
+            self.shirtLabel = None
+
+        if self.shirtEntry:
+            self.shirtEntry.destroy()
+            self.shirtEntry = None
+
+        if self.shortsLabel:
+            self.shortsLabel.destroy()
+            self.shortsLabel = None
+
+        if self.shortsEntry:
+            self.shortsEntry.destroy()
+            self.shortsEntry = None
 
         if self.doneButton:
             self.doneButton.destroy()
