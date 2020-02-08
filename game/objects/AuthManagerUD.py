@@ -169,6 +169,7 @@ class AuthFSM(FSM):
         datagramCleanup.addUint32(self.playerId)
         datagram = PyDatagram()
         datagram.addServerHeader(channel, self.air.ourChannel, CLIENTAGENT_ADD_POST_REMOVE)
+        datagram.addUint16(datagramCleanup.getLength())
         datagram.appendData(datagramCleanup.getMessage())
         self.air.send(datagram)
 
