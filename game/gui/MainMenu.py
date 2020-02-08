@@ -3,7 +3,7 @@ from panda3d.core import *
 from direct.gui import DirectGuiGlobals as DGG
 from ..jitsu.CardJitsuGlobals import *
 from ..player.Toon import Toon
-from ..player.ToonDNA import ToonDNA
+from ..player import ToonDNA
 from ..gui.CustomizeScreen import CustomizeScreen
 
 
@@ -30,10 +30,23 @@ class MainMenu(NodePath):
         self.toon = None
         self.leftButton = None
         self.rightButton = None
+        self.populationLabel = None
+        self.version = None
         self.buttons = []
-        self.logo = OnscreenImage(parent=base.a2dTopCenter, image='maps/logo.png', scale=0.4,
-                                  pos=(0.79, 0, -0.3))
+        self.logo = OnscreenImage(parent=base.a2dTopCenter, image='maps/logo.png', scale=0.4, pos=(0.79, 0, -0.3))
         self.logo.setTransparency(TransparencyAttrib.MAlpha)
+        serverVersion = config.GetString('server-version', 'no_version_set')
+        self.version = OnscreenText(parent=base.a2dBottomRight, text=serverVersion, font=FONT, fg=Vec4(1, 1, 1, 0.6),
+                                    pos=(-0.05 * len(serverVersion), 0.02), align=TextNode.ALeft)
+
+    def popChanged(self, newPopulation):
+        base = 'Players Online: '
+        if not self.populationLabel:
+            self.populationLabel = DirectLabel(parent=self.logo, relief=None, text=base + str(newPopulation),
+                                               pos=(0, 0, -1.0), text_font=FONT, text_scale=0.25)
+            self.populationLabel.accept('popChanged', self.popChanged)
+        else:
+            self.populationLabel.setText(base + str(newPopulation))
 
     def readyToQueue(self):
         for button in self.buttons:
@@ -90,7 +103,7 @@ class MainMenu(NodePath):
                                           frameSize=(-0.5, 1.5, -0.15, 0.15),
                                           borderWidth=(0.02, 0.02), scale=0.42, pos=(0.57, 0, -0.05),
                                           range=WIN_REQUIREMENTS.get(ourSkillLevel + 1, 0),
-                                          value=base.localAvatar.winCount,
+                                          value=base.localAvatar.getWinCount(),
                                           barColor=(0, 0.7, 0, 1))
 
         currColor = RANK_COLORS.get(ourSkillLevel, None)
@@ -111,7 +124,13 @@ class MainMenu(NodePath):
         if self.logo.isStashed():
             self.logo.unstash()
 
+        if self.version.isStashed():
+            self.version.unstash()
+
         self._createProgressBar()
+
+        # Initial call
+        self.popChanged(base.cr.districtObj.getPopulation())
 
         buttonModels = loader.loadModel('phase_3.5/models/gui/inventory_gui')
         upButton = buttonModels.find('**//InventoryButtonUp')
@@ -123,14 +142,14 @@ class MainMenu(NodePath):
                   'Options': self.enterOptions,
                   'Quit': base.cr.exit}
 
-        startZ = -0.85
+        startZ = -1.0
         for bText, bCmd in cmdMap.items():
             button = DirectButton(parent=base.a2dTopCenter, relief=None, text=bText, text_fg=(1, 1, 0.65, 1),
                                   text_font=FONT, text_pos=(0, -.23), text_scale=0.6, pos=(0.8, 0, startZ),
                                   scale=0.15, image=(upButton, downButton, rolloverButton), command=bCmd,
                                   image_color=(1, 0, 0, 1), image_scale=(20, 1, 11), sortOrder=DGG.GEOM_SORT_INDEX)
 
-            startZ -= 0.3
+            startZ -= 0.2
             self.buttons.append(button)
 
         if not self.toonFrame:
@@ -156,7 +175,7 @@ class MainMenu(NodePath):
             geom.removeNode()
 
             self.toon = Toon()
-            dna = ToonDNA()
+            dna = ToonDNA.ToonDNA()
             dna.makeFromNetString(base.localAvatar.getDNAString())
             self.toon.setDNA(dna)
 
@@ -226,6 +245,10 @@ class MainMenu(NodePath):
             self.rightButton.destroy()
             self.rightButton = None
 
+        if self.populationLabel:
+            self.populationLabel.destroy()
+            self.populationLabel = None
+
         if self.toon:
             self.toon.cleanup()
             self.toon.delete()
@@ -253,5 +276,8 @@ class MainMenu(NodePath):
 
         if self.logo:
             self.logo.stash()
+
+        if self.version:
+            self.version.stash()
 
         self.buttons = []

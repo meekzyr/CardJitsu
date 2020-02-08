@@ -19,6 +19,7 @@ dclass AuthManager : DistributedObject {
 
 dclass DistributedDistrict : DistributedObject {
   setParentingRules(string, string) broadcast ram;
+  setPopulation(uint32 population) required broadcast ram;
 };
 
 dclass DistributedPlayer : DistributedNode {

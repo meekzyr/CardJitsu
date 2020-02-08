@@ -1,10 +1,12 @@
 # Client settings
 window-title Card Jitsu
+server-version dev
 sync-video #t
 texture-anisotropic-degree 16
 audio-library-name p3openal_audio
 smooth-lag 0.4
 gc-save-all 0
+win-size 1024 768
 
 # Resource settings
 vfs-mount resources/phase_3 /phase_3

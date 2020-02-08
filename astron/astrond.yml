@@ -1,6 +1,4 @@
 general:
-    # A list of DC files to be loaded.
-    #     NOTE: Order is sensitive, DC files loaded in a different order will not match.
     dc_files:
         - dclass/direct.dc
         - dclass/jitsu.dc
@@ -8,23 +6,14 @@ general:
 messagedirector:
     bind: 127.0.0.1:7199
 
-# The Uberdog section describes the existence of UberDOGs, which are objects
-#     that are assumed to exist statically.
 uberdogs:
   - id: 1001
     class: AuthManager
-    # Anonymous specifies whether an uberdog can be accessed through
-    #     the ClientAgent from an unauthenticated client.
     anonymous: true
 
-# The Roles section allows specifying roles that we would like this daemon to perform.
 roles:
-    # For example, let's have a client agent which listens on port 7198 on all interfaces:
     - type: clientagent
       bind: 0.0.0.0:7198
-      # Manual_dc_hash tells the server what DC hash version to expect from the client.
-      #     This is mostly used if the DC parser used by the client doesn't have hash parity
-      #     with the parser used by Astron.
       version: "dev"
 
       channels:
@@ -34,11 +23,9 @@ roles:
           relocate: true
           add_interest: enabled
 
-    # Next we'll have a state server, whose control channel is 4002.
     - type: stateserver
       control: 4002
 
-    # Our next role will be a YAML database to store player information.
     - type: database
       control: 4003
       generate:
@@ -48,7 +35,6 @@ roles:
         type: mongodb
         server: mongodb://127.0.0.1:27017/jitsu
 
-    # Finally, we'll have a state server for the database.
     - type: dbss
       database: 4003
       ranges:

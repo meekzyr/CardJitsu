@@ -5,6 +5,7 @@ class DistributedDistrict(DistributedObject):
     def __init__(self, cr):
         DistributedObject.__init__(self, cr)
         self.uberInterest = None
+        self.population = 0
 
     def announceGenerate(self):
         DistributedObject.announceGenerate(self)
@@ -23,3 +24,10 @@ class DistributedDistrict(DistributedObject):
 
         self.cr.districtObj = None
         DistributedObject.delete(self)
+
+    def setPopulation(self, population):
+        self.population = population
+        messenger.send('popChanged', [population])
+
+    def getPopulation(self):
+        return self.population

@@ -13,6 +13,14 @@ class DistributedPlayerAI(DistributedNodeAI):
         self._name = ''
         self.dnaString = ''
 
+    def postGenerateMessage(self):
+        self.air.district.playerOnline()
+        DistributedNodeAI.postGenerateMessage(self)
+
+    def delete(self):
+        self.air.district.playerOffline()
+        DistributedNodeAI.delete(self)
+
     def setName(self, name):
         self._name = name
 
