@@ -11,6 +11,7 @@ from game.gui.DustCloud import DustCloud
 from game.gui.Timer import Timer
 from game.gui.TextDisplay import TextDisplay
 from game.jitsu.CardJitsuGlobals import *
+from ..player import ToonHead, ToonDNA
 
 import random
 
@@ -45,10 +46,10 @@ class DistributedCardJitsu(DistributedNode):
         self.otherTrack = 0
         self.otherReturnPos = None
 
-        self.ourLabel = None
+        self.ourFrame = None
         self.ourDot = None
 
-        self.opponentLabel = None
+        self.opponentFrame = None
         self.opponentSkillDot = None
 
         self.textDisplay = TextDisplay(FONT)
@@ -90,13 +91,13 @@ class DistributedCardJitsu(DistributedNode):
             self.ourDot.destroy()
             self.ourDot = None
 
-        if self.opponentLabel:
-            self.opponentLabel.destroy()
-            self.opponentLabel = None
+        if self.opponentFrame:
+            self.opponentFrame.destroy()
+            self.opponentFrame = None
 
-        if self.ourLabel:
-            self.ourLabel.destroy()
-            self.ourLabel = None
+        if self.ourFrame:
+            self.ourFrame.destroy()
+            self.ourFrame = None
 
         self.textDisplay.destroy()
 
@@ -255,27 +256,45 @@ class DistributedCardJitsu(DistributedNode):
         if self.otherCard:
             self.otherCard.show()
 
-    def setOpponentName(self, name, skillLevel):
-
+    def setOpponentName(self, name, skillLevel, dnaString):
         # first create our own frame
         # create our own frame, the opponent's frame will be created in a later update
         frame = loader.loadModel('phase_3.5/models/modules/trophy_frame')
         dot = loader.loadModel('phase_6/models/golf/checker_marble')
-        self.ourLabel = DirectLabel(parent=base.a2dBottomLeft, relief=None, geom=frame, geom_scale=(0.25, 0.1, 0.25),
+        self.ourFrame = DirectLabel(parent=base.a2dBottomLeft, relief=None, geom=frame, geom_scale=(0.25, 0.1, 0.25),
                                     text=base.localAvatar.getName(), text_wordwrap=7.504, text_align=TextNode.A_center,
                                     text_font=FONT, text_scale=0.07, text_pos=(0, -0.2), sortOrder=70, pos=(0.24, 0, 0.32))
 
+        dna = ToonDNA.ToonDNA()
+        dna.makeFromNetString(base.localAvatar.getDNAString())
+        ourToon = ToonHead.ToonHead()
+        ourToon.startBlink()
+        ourToon.setH(180)
+        ourToon.setupHead(dna, forGui=1)
+        ourToon.setScale(0.2, 0.2, 0.2)  # TODO: head scales for species
+        ourToon.reparentTo(self.ourFrame)
+
         ourSkillLevel = base.localAvatar.getBeltLevel()
         if ourSkillLevel != NONE:
-            self.ourDot = DirectLabel(parent=self.ourLabel, relief=None, geom=dot, geom_scale=0.3,
+            self.ourDot = DirectLabel(parent=self.ourFrame, relief=None, geom=dot, geom_scale=0.3,
                                       sortOrder=80, geom_color=RANK_COLORS[ourSkillLevel], geom_hpr=(0, 90, 0),
                                       geom_pos=(0.11, 0, 0.17))
 
-        self.opponentLabel = DirectLabel(parent=base.a2dTopRight, relief=None, geom=frame, geom_scale=(0.25, 0.1, 0.25),
+        self.opponentFrame = DirectLabel(parent=base.a2dTopRight, relief=None, geom=frame, geom_scale=(0.25, 0.1, 0.25),
                                          text=name, text_wordwrap=7.504, text_align=TextNode.A_center, text_font=FONT,
                                          text_scale=0.07, text_pos=(0, -0.2), sortOrder=70, pos=(-0.31, 0, -0.35))
+
+        dna = ToonDNA.ToonDNA()
+        dna.makeFromNetString(dnaString)
+        opponent = ToonHead.ToonHead()
+        opponent.startBlink()
+        opponent.setH(180)
+        opponent.setupHead(dna, forGui=1)
+        opponent.setScale(0.2, 0.2, 0.2) # TODO: head scales for species
+        opponent.reparentTo(self.opponentFrame)
+
         if skillLevel != NONE:
-            self.opponentSkillDot = DirectLabel(parent=self.opponentLabel, relief=None, geom=dot, geom_scale=0.3,
+            self.opponentSkillDot = DirectLabel(parent=self.opponentFrame, relief=None, geom=dot, geom_scale=0.3,
                                                 sortOrder=80, geom_color=RANK_COLORS[skillLevel], geom_hpr=(0, 90, 0),
                                                 geom_pos=(0.11, 0, 0.17))
 

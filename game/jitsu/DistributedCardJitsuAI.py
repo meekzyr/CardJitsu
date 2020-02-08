@@ -118,7 +118,7 @@ class DistributedCardJitsuAI(DistributedNodeAI):
             otherAv = self.air.doId2do.get(self.activePlayers[otherInd])
             skillLevel = otherAv.getBeltLevel()
             # todo: need to pass player av data
-            self.sendUpdateToAvatarId(avId, 'setOpponentName', [otherAv.getName(), skillLevel])
+            self.sendUpdateToAvatarId(avId, 'setOpponentName', [otherAv.getName(), skillLevel, otherAv.getDNAString()])
 
             localDeck = list(copy.copy(ALL_DECK))
             deck = []

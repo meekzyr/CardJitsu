@@ -41,7 +41,7 @@ dclass DistributedCardJitsu : DistributedNode {
   roundResult(uint32 winnerId, JitsuCard []) broadcast;
   gameOver(uint8 result, uint32 resultAvId) broadcast;
   startGame(uint32 []) broadcast;
-  setOpponentName(string, uint32 skillLevel);
+  setOpponentName(string, uint32 skillLevel, blob dnaString);
   forcePick();
   receiveCards(JitsuCard []);
   requestSelectCard(uint8 cardIndex, uint8 trackId, uint8 cardTier) clsend airecv;
