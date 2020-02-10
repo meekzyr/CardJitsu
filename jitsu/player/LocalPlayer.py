@@ -1,6 +1,7 @@
 from .DistributedPlayer import DistributedPlayer
 from ..jitsu.CardJitsuGlobals import FONT
 from direct.gui.DirectDialog import YesNoDialog
+from direct.gui.DirectFrame import DirectFrame
 from direct.gui.DirectGuiGlobals import DISABLED, NORMAL
 
 
@@ -9,6 +10,7 @@ class LocalPlayer(DistributedPlayer):
 
     def __init__(self, cr):
         DistributedPlayer.__init__(self, cr)
+        self.requeueFrame = None
         self.requeueDialog = None
         self.gameInterest = None
 
@@ -16,6 +18,10 @@ class LocalPlayer(DistributedPlayer):
         if self.requeueDialog:
             self.requeueDialog.destroy()
             self.requeueDialog = None
+
+        if self.requeueFrame:
+            self.requeueFrame.destroy()
+            self.requeueFrame = None
 
         if self.gameInterest:
             self.cr.removeInterest(self.gameInterest, 'clearInterestDone')
@@ -34,6 +40,10 @@ class LocalPlayer(DistributedPlayer):
             self.requeueDialog.destroy()
             self.requeueDialog = None
 
+        if self.requeueFrame:
+            self.requeueFrame.destroy()
+            self.requeueFrame = None
+
     def askForRequeue(self):
         buttons = loader.loadModel('phase_3/models/gui/dialog_box_buttons_gui')
         okImageList = (buttons.find('**/ChtBx_OKBtn_UP'), buttons.find('**/ChtBx_OKBtn_DN'),
@@ -42,13 +52,13 @@ class LocalPlayer(DistributedPlayer):
                            buttons.find('**/CloseBtn_Rllvr'))
         buttons.removeNode()
         self.cr.mainMenu.buttons[0]['state'] = DISABLED
-        self.requeueDialog = YesNoDialog(text='Would you like to requeue?',
-                                         button_text_pos=(0, -0.1),
-                                         button_relief=None,
-                                         buttonImageList=[okImageList, cancelImageList],
-                                         button_text_font=FONT,
-                                         text_font=FONT,
-                                         command=self.requeueResponse)
+        self.requeueFrame = DirectFrame(relief=None, image=loader.loadModel('phase_13/models/gui/fade'),
+                                        image_scale=(5, 2, 2), image_color=(0, 0, 0, 0.3), image_pos=(0.5, 0, 0),
+                                        state=NORMAL, sortOrder=20)
+        self.requeueDialog = YesNoDialog(parent=self.requeueFrame, text='Would you like to requeue?',
+                                         button_text_pos=(0, -0.1), button_relief=None,
+                                         buttonImageList=[okImageList, cancelImageList], button_text_font=FONT,
+                                         text_font=FONT, command=self.requeueResponse)
 
     def setGameZone(self, gameZone):
         if self.gameInterest:
