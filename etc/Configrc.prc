@@ -11,14 +11,14 @@ icon-filename resources/jitsu.ico
 notify-timestamp #t
 dc-file etc/jitsu.dc
 
-vfs-mount resources/phase_audio /phase_audio
-vfs-mount resources/phase_fonts /phase_fonts
-vfs-mount resources/phase_maps /phase_maps
-vfs-mount resources/phase_3 /phase_3
-vfs-mount resources/phase_3.5 /phase_3.5
-vfs-mount resources/phase_4 /phase_4
-vfs-mount resources/phase_5 /phase_5
-vfs-mount resources/phase_6 /phase_6
-vfs-mount resources/phase_8 /phase_8
-vfs-mount resources/phase_13 /phase_13
+vfs-mount resources/phase_audio.mf . 0
+vfs-mount resources/phase_fonts.mf . 0
+vfs-mount resources/phase_maps.mf . 0
+vfs-mount resources/phase_3.mf . 0
+vfs-mount resources/phase_3.5.mf . 0
+vfs-mount resources/phase_4.mf . 0
+vfs-mount resources/phase_5.mf . 0
+vfs-mount resources/phase_6.mf . 0
+vfs-mount resources/phase_8.mf . 0
+vfs-mount resources/phase_13.mf . 0
 model-path resources/
