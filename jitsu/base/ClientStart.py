@@ -8,17 +8,9 @@ builtins.process = 'client'
 
 loadPrcFileData('', 'default-model-extension .bam')
 
-want_dev = False
 if len(sys.argv) > 1 and sys.argv[1] == '--dev':
-    want_dev = True
     loadPrcFile('etc/Configrc.prc')
-
-builtins.want_dev = want_dev
-
-from direct.showbase.ShowBase import ShowBase
-base = ShowBase()
-
-if not want_dev:
+else:
     vfs = VirtualFileSystem.getGlobalPtr()
     mounts = ConfigVariableList('vfs-mount')
     for mount in mounts:
@@ -28,6 +20,8 @@ if not want_dev:
         mountPoint = Filename(mountPoint)
         vfs.mount(mountFile, mountPoint, 0)
 
+from direct.showbase.ShowBase import ShowBase
+base = ShowBase()
 base.disableMouse()
 
 cbMgr = CullBinManager.getGlobalPtr()
