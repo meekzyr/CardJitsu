@@ -1,0 +1,120 @@
+from direct.distributed import DistributedObject/AI
+from direct.distributed import DistributedNode/AI
+
+from direct.distributed import DistributedSmoothNode/AI
+
+from jitsu.account import Account/AI/UD
+from jitsu.objects import TimeManager/AI
+from jitsu.objects import AuthManager/UD
+from jitsu.objects import DistributedDistrict/AI
+from jitsu.player import DistributedPlayer/AI/UD
+from jitsu.jitsu import DistributedCardJitsu/AI
+
+typedef uint8 bool;
+
+struct BarrierData {
+  uint16 context;
+  string name;
+  uint32 avIds[];
+};
+
+dclass DistributedObject {
+  setBarrierData(BarrierData data[]) broadcast ram;
+  setBarrierReady(uint16 context);
+  setLocation(uint32 parentId, uint32 zoneId) broadcast ram;
+};
+
+dclass TimeManager: DistributedObject {
+  requestServerTime(uint8 context) clsend airecv;
+  serverTime(uint8 context, int32 timestamp);
+  setParentingRules();
+};
+
+dclass DistributedNode: DistributedObject {
+  setX(int16 / 10) broadcast ram ownsend airecv;
+  setY(int16 / 10) broadcast ram ownsend airecv;
+  setZ(int16 / 10) broadcast ram ownsend airecv;
+  setH(int16 % 360 / 10) broadcast ram ownsend airecv;
+  setP(int16 % 360 / 10) broadcast ram ownsend airecv;
+  setR(int16 % 360 / 10) broadcast ram ownsend airecv;
+
+  setPos: setX, setY, setZ;
+  setHpr: setH, setP, setR;
+  setPosHpr: setX, setY, setZ, setH, setP, setR;
+  setXY: setX, setY;
+  setXZ: setX, setZ;
+  setXYH: setX, setY, setH;
+  setXYZH: setX, setY, setZ, setH;
+};
+
+dclass DistributedSmoothNode : DistributedNode {
+  setComponentL(uint64 l) broadcast ram ownsend airecv;
+  setComponentX(int16/10 x) broadcast ram ownsend airecv;
+  setComponentY(int16/10 y) broadcast ram ownsend airecv;
+  setComponentZ(int16/10 z) broadcast ram ownsend airecv;
+  setComponentH(int16%360/10 h) broadcast ram ownsend airecv;
+  setComponentP(int16%360/10 p) broadcast ram ownsend airecv;
+  setComponentR(int16%360/10 r) broadcast ram ownsend airecv;
+  setComponentT(int16 timestamp) broadcast ram ownsend airecv;
+  setSmStop : setComponentT;
+  setSmH : setComponentH, setComponentT;
+  setSmZ : setComponentZ, setComponentT;
+  setSmXY : setComponentX, setComponentY, setComponentT;
+  setSmXZ : setComponentX, setComponentZ, setComponentT;
+  setSmPos : setComponentX, setComponentY, setComponentZ, setComponentT;
+  setSmHpr : setComponentH, setComponentP, setComponentR, setComponentT;
+  setSmXYH : setComponentX, setComponentY, setComponentH, setComponentT;
+  setSmXYZH : setComponentX, setComponentY, setComponentZ, setComponentH, setComponentT;
+  setSmPosHpr : setComponentX, setComponentY, setComponentZ, setComponentH, setComponentP, setComponentR, setComponentT;
+  setSmPosHprL : setComponentL, setComponentX, setComponentY, setComponentZ, setComponentH, setComponentP, setComponentR, setComponentT;
+  clearSmoothing(int8 bogus) broadcast ownsend;
+  suggestResync(uint32 avId, int16 timestampA, int16 timestampB, int32 serverTimeSec, uint16 serverTimeUSec, uint16/100 uncertainty) ownrecv clsend;
+  returnResync(uint32 avId, int16 timestampB, int32 serverTimeSec, uint16 serverTimeUSec, uint16/100 uncertainty) ownrecv clsend;
+};
+
+dclass Account {
+  string ACCOUNT_ID db;
+  string ACCOUNT_PASSWORD db;
+  uint32 PLAYER_ID db;
+};
+
+dclass AuthManager : DistributedObject {
+  loginResponse(uint8 success);
+  requestLogin(string, string, bool) clsend airecv;
+};
+
+dclass DistributedDistrict : DistributedObject {
+  setParentingRules(string, string) broadcast ram;
+  setPopulation(uint32 population) required broadcast ram;
+};
+
+dclass DistributedPlayer : DistributedNode {
+  setBeltLevel(uint32) required broadcast ownrecv db;
+  setWinCount(uint32) required broadcast ownrecv db;
+  setName(string) required broadcast db airecv;
+  setDNAString(blob) required broadcast db ownrecv airecv clsend;
+  setGameZone(uint32 zoneId) ownrecv;
+  queueReady() ownsend airecv;
+};
+
+struct JitsuCard {
+  uint8 trackId;
+  uint8 cardTier;
+};
+
+dclass DistributedCardJitsu : DistributedNode {
+  setTimer(int16) broadcast ram required;
+  cardSelected(uint32 avId, uint8 cardIndex) broadcast;
+  roundResult(uint32 winnerId, JitsuCard []) broadcast;
+  gameOver(uint8 result, uint32 resultAvId) broadcast;
+  startGame(uint32 []) broadcast;
+  setOpponentName(string, uint32 skillLevel, blob dnaString);
+  forcePick();
+  receiveCards(JitsuCard []);
+  requestSelectCard(uint8 cardIndex, uint8 trackId, uint8 cardTier) clsend airecv;
+  requestBegin() clsend airecv;
+  requestExit() clsend airecv;
+  requestTimer() clsend airecv;
+  resultFinished() clsend airecv;
+};
+

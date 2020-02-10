@@ -1,7 +1,6 @@
 general:
     dc_files:
-        - dclass/direct.dc
-        - dclass/jitsu.dc
+        - ../etc/jitsu.dc
 
 messagedirector:
     bind: 127.0.0.1:7199
