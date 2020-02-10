@@ -1,21 +1,21 @@
 from panda3d.core import *
-
-loadPrcFileData('', 'default-model-extension .bam')
-
+import sys
 from direct.directnotify.DirectNotifyGlobal import directNotify
 import builtins
 
 builtins.directNotify = directNotify
 builtins.process = 'client'
 
+loadPrcFileData('', 'default-model-extension .bam')
+
+if len(sys.argv) > 1 and sys.argv[1] == '--dev':
+    loadPrcFile('etc/Configrc.prc')
+
 from direct.showbase.ShowBase import ShowBase
 base = ShowBase()
 
-# The VirtualFileSystem, which has already initialized, doesn't see the mount
-# directives in the config(s) yet. We have to force it to load those manually:
 vfs = VirtualFileSystem.getGlobalPtr()
 mounts = ConfigVariableList('vfs-mount')
-print(mounts)
 for mount in mounts:
     mountFile, mountPoint = (mount.split(' ', 2) + [None, None, None])[:2]
     mountFile = Filename(mountFile)

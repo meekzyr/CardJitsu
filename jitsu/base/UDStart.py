@@ -1,6 +1,6 @@
 from panda3d.core import loadPrcFile
 
-loadPrcFile("etc/general.prc")
+loadPrcFile("etc/Configrc.prc")
 
 from direct.directnotify.DirectNotifyGlobal import directNotify
 

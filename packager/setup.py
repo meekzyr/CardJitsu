@@ -23,6 +23,7 @@ setup(
                 'resources/**/*.bam',
                 'resources/**/*.jpg',
                 'resources/**/*.ttf',
+                'resources/**/*.ogg',
                 'resources/*.ico'
             ],
             'gui_apps': {
@@ -39,11 +40,11 @@ setup(
                 '*': ['jitsu.account.Account', 'jitsu.objects.TimeManager', 'jitsu.objects.AuthManager',
                       'jitsu.objects.DistributedDistrict', 'jitsu.jitsu.DistributedCardJitsu']},
             'exclude_dependencies': windows_dependencies,
-            'log_filename': '_logfile.log',
+            'log_filename': 'jitsu.log',
             'use_optimized_wheels': False,
             'default_prc_dir': 'etc/',
             'build_base': 'packager',
-            'extra_prc_files': ['etc/general.prc'],
+            'extra_prc_files': ['etc/Configrc.prc'],
             'pypi_extra_indexes': [],
         }
     },
