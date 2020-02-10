@@ -1,6 +1,5 @@
 from panda3d.core import Vec4
 
-CARD_MODEL = 'phase_13/models/props/jitsucard'
 TRACK_FIRE = 3
 TRACK_WATER = 4
 TRACK_ICE = 5
@@ -8,8 +7,14 @@ TRACK_ICE = 5
 
 if process == 'client':
     FONT = loader.loadFont('phase_fonts/ImpressBT.ttf', lineHeight=1.0)
+    CARD_MODELS = {0: loader.loadModel('phase_13/models/gui/pcard_tier1.bam'),
+                   2: loader.loadModel('phase_13/models/gui/pcard_tier2.bam'),
+                   3: loader.loadModel('phase_13/models/gui/pcard_tier3.bam'),
+                   4: loader.loadModel('phase_13/models/gui/pcard_tier4.bam'),
+                   5: loader.loadModel('phase_13/models/gui/pcard_tier5.bam'),
+                   6: loader.loadModel('phase_13/models/gui/pcard_tier6.bam')}
 
-TRACK_COLORS = {
+TIER_COLORS = {
     # 0: Vec4(0.559, 0.59, 0.875, 1.0),
     # 1: Vec4(0.996, 0.898, 0.32, 1.0),
     2: Vec4(0.305, 0.969, 0.402, 1.0),

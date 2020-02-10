@@ -35,7 +35,7 @@ class DistributedCardJitsu(DistributedNode):
         self.cardButtons = {}
         self.roundResults = {}
         self.winIndicators = []
-        self._card = loader.loadModel(CARD_MODEL)
+
         self.turnPlayed = None
         self.leaveButton = None
         self.screenText = None
@@ -50,6 +50,7 @@ class DistributedCardJitsu(DistributedNode):
 
         self.opponentFrame = None
         self.opponentSkillDot = None
+        self.revealSequence = None
 
         self.bgm = loader.loadMusic('phase_audio/bgm/game_bgm.ogg')
         self.textDisplay = TextDisplay(FONT)
@@ -86,6 +87,10 @@ class DistributedCardJitsu(DistributedNode):
         if self.bgm:
             self.bgm.stop()
             del self.bgm
+
+        if self.revealSequence:
+            self.revealSequence.clearToInitial()
+            self.revealSequence = None
 
         if self.opponentSkillDot:
             self.opponentSkillDot.destroy()
@@ -140,10 +145,6 @@ class DistributedCardJitsu(DistributedNode):
         if self.screenText:
             self.screenText.destroy()
             self.screenText = None
-
-        if self._card:
-            self._card.removeNode()
-            self._card = None
 
         if self.buttonModels:
             self.buttonModels.removeNode()
@@ -238,11 +239,9 @@ class DistributedCardJitsu(DistributedNode):
         for i, info in enumerate(cards):
             trackId, cardTier = info
 
-            image = self.trackIcons[trackId].copyTo(NodePath())
-            np = self._card.copyTo(NodePath())
-            np.setColorScale(TRACK_COLORS[cardTier])
+            np = CARD_MODELS[cardTier].copyTo(NodePath())
+            image = self.trackIcons[trackId].copyTo(np)
             image.setScale(ICON_SCALE[trackId])
-            image.reparentTo(np)
             image.setR(-90)
             if trackId == TRACK_ICE:
                 image.setPos(0.7, 0, 0.2)
@@ -274,7 +273,7 @@ class DistributedCardJitsu(DistributedNode):
         ourToon.startBlink()
         ourToon.setH(180)
         ourToon.setupHead(dna, forGui=1)
-        ourToon.setScale(0.2, 0.2, 0.2)  # TODO: head scales for species
+        ourToon.setScale(0.11)  # TODO: head scales for species
         ourToon.reparentTo(self.ourFrame)
 
         ourSkillLevel = base.localAvatar.getBeltLevel()
@@ -293,7 +292,7 @@ class DistributedCardJitsu(DistributedNode):
         opponent.startBlink()
         opponent.setH(180)
         opponent.setupHead(dna, forGui=1)
-        opponent.setScale(0.2, 0.2, 0.2) # TODO: head scales for species
+        opponent.setScale(0.11) # TODO: head scales for species
         opponent.reparentTo(self.opponentFrame)
 
         if skillLevel != NONE:
@@ -350,8 +349,7 @@ class DistributedCardJitsu(DistributedNode):
                 self.clockNode.hide()
 
     def addCardTier(self, trackId, cardTier):
-        np = self._card.copyTo(NodePath())
-        np.setColorScale(TRACK_COLORS[cardTier])
+        np = CARD_MODELS[cardTier].copyTo(NodePath())
         image = self.trackIcons[trackId].copyTo(NodePath('icon'))
         image.setScale(ICON_SCALE[trackId])
         image.reparentTo(np)
@@ -380,7 +378,7 @@ class DistributedCardJitsu(DistributedNode):
             if icon:
                 icon.removeNode()
 
-            geom.setColorScale(1, 1, 1, 1)
+            geom = CARD_MODELS[0].copyTo(NodePath())
             self.otherCard['geom'] = geom
             self.otherCard['geom_hpr'] = UNREVEALED_HPR
             self.otherCard['geom_scale'] = 0.6
@@ -404,8 +402,7 @@ class DistributedCardJitsu(DistributedNode):
             index += 5
 
         image = self.trackIcons[trackId].copyTo(NodePath())
-        np = self._card.copyTo(NodePath())
-        np.setColorScale(TRACK_COLORS[cardTier])
+        np = CARD_MODELS[cardTier].copyTo(NodePath())
         image.reparentTo(np)
         image.setScale(ICON_SCALE[trackId])
         image.setR(-90)
@@ -449,7 +446,7 @@ class DistributedCardJitsu(DistributedNode):
                     self.roundResults[winnerId][track].append(tier)
 
         poofSequence = getDustCloudIval()
-        sequence = Sequence(
+        self.revealSequence = Sequence(
             poofSequence,
             Func(self.addCardTier, *playedCards[0]),
             Func(self.textDisplay.displayText, f'{name} {result} this round!'),
@@ -462,7 +459,7 @@ class DistributedCardJitsu(DistributedNode):
             Func(self.d_resultFinished),
         )
 
-        sequence.start()
+        self.revealSequence.start()
 
         if self.targetCard:
             if self.turnPlayed:
@@ -480,7 +477,7 @@ class DistributedCardJitsu(DistributedNode):
 
         # create the dummy cards
         for i in range(0, NUM_CARDS):
-            np = self._card.copyTo(NodePath())
+            np = CARD_MODELS[0].copyTo(NodePath())
             card = DirectButton(parent=aspect2d, relief=None, geom=np, geom_hpr=UNREVEALED_HPR, geom_scale=0.6,
                                 state=DGG.DISABLED, text_pos=(-.6, 0.62), text_scale=0.6, command=self.doNothing,
                                 scale=0.15)
