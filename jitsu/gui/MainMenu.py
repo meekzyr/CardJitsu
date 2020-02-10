@@ -1,6 +1,7 @@
 from direct.gui.DirectGui import *
 from panda3d.core import *
 from direct.gui import DirectGuiGlobals as DGG
+from direct.interval.IntervalGlobal import *
 from ..jitsu.CardJitsuGlobals import *
 from ..player.Toon import Toon
 from ..player import ToonDNA
@@ -32,12 +33,15 @@ class MainMenu(NodePath):
         self.rightButton = None
         self.populationLabel = None
         self.version = None
+        self.musicSeq = None
         self.buttons = []
         self.logo = OnscreenImage(parent=base.a2dTopCenter, image='phase_maps/logo.png', scale=0.4, pos=(0.79, 0, -0.3))
         self.logo.setTransparency(TransparencyAttrib.MAlpha)
         serverVersion = config.GetString('server-version', 'no_version_set')
         self.version = OnscreenText(parent=base.a2dBottomRight, text=serverVersion, font=FONT, fg=Vec4(1, 1, 1, 0.6),
                                     pos=(-0.05 * len(serverVersion), 0.02), align=TextNode.ALeft)
+        self.bgm_intro = loader.loadMusic('phase_audio/bgm/menu_intro.ogg')
+        self.bgm_main = loader.loadMusic('phase_audio/bgm/menu_loop.ogg')
 
     def popChanged(self, newPopulation):
         base = 'Players Online: '
@@ -49,10 +53,7 @@ class MainMenu(NodePath):
             self.populationLabel.setText(base + str(newPopulation))
 
     def readyToQueue(self):
-        for button in self.buttons:
-            button.destroy()
-
-        self.buttons = []
+        self.buttons[0]['state'] = DGG.DISABLED
         base.localAvatar.d_sendReady()
 
     def returnToMenu(self, uiObj):
@@ -60,6 +61,8 @@ class MainMenu(NodePath):
             uiObj.destroy()
 
         self.load()
+        if not self.bgm_intro:
+            self.bgm_intro = loader.loadMusic('phase_audio/bgm/menu_intro.ogg')
 
     def customizePlayer(self):
         self.unload()
@@ -121,6 +124,18 @@ class MainMenu(NodePath):
         dot.removeNode()
 
     def load(self):
+        if not self.musicSeq:
+            self.musicSeq = Sequence()
+            if self.bgm_intro:
+                self.musicSeq.extend([Func(base.playMusic, self.bgm_intro), Wait(self.bgm_intro.length())])
+
+            if self.bgm_main:
+                self.musicSeq.append(Func(base.playMusic, self.bgm_main, looping=True))
+
+            self.musicSeq.start()
+        else:
+            self.musicSeq.resume()
+
         if self.logo.isStashed():
             self.logo.unstash()
 
@@ -136,6 +151,7 @@ class MainMenu(NodePath):
         upButton = buttonModels.find('**//InventoryButtonUp')
         downButton = buttonModels.find('**/InventoryButtonDown')
         rolloverButton = buttonModels.find('**/InventoryButtonRollover')
+        disabledButton = buttonModels.find('**//InventoryButtonFlat')
 
         cmdMap = {'Queue': self.readyToQueue,
                   'Customize': self.customizePlayer,
@@ -146,7 +162,7 @@ class MainMenu(NodePath):
         for bText, bCmd in cmdMap.items():
             button = DirectButton(parent=base.a2dTopCenter, relief=None, text=bText, text_fg=(1, 1, 0.65, 1),
                                   text_font=FONT, text_pos=(0, -.23), text_scale=0.6, pos=(0.8, 0, startZ),
-                                  scale=0.15, image=(upButton, downButton, rolloverButton), command=bCmd,
+                                  scale=0.15, image=(upButton, downButton, rolloverButton, disabledButton), command=bCmd,
                                   image_color=(1, 0, 0, 1), image_scale=(20, 1, 11), sortOrder=DGG.GEOM_SORT_INDEX)
 
             startZ -= 0.2
@@ -212,6 +228,14 @@ class MainMenu(NodePath):
 
     def unload(self):
         self.notify.debug('unload')
+
+        if self.bgm_intro:
+            self.bgm_intro.stop()
+            self.bgm_intro = None
+
+        if self.musicSeq:
+            self.musicSeq.pause()
+            self.musicSeq = None
 
         if self.beltProgress:
             self.beltProgress.destroy()

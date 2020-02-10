@@ -38,7 +38,6 @@ class DistributedCardJitsu(DistributedNode):
         self._card = loader.loadModel(CARD_MODEL)
         self.turnPlayed = None
         self.leaveButton = None
-        self.inGame = False
         self.screenText = None
         self.wantTimer = True
         self.targetCard = None
@@ -52,6 +51,7 @@ class DistributedCardJitsu(DistributedNode):
         self.opponentFrame = None
         self.opponentSkillDot = None
 
+        self.bgm = loader.loadMusic('phase_audio/bgm/game_bgm.ogg')
         self.textDisplay = TextDisplay(FONT)
 
         self.buttonModels = loader.loadModel('phase_3.5/models/gui/inventory_gui')
@@ -83,6 +83,10 @@ class DistributedCardJitsu(DistributedNode):
         self.fsm.enterInitialState()
 
     def delete(self):
+        if self.bgm:
+            self.bgm.stop()
+            del self.bgm
+
         if self.opponentSkillDot:
             self.opponentSkillDot.destroy()
             self.opponentSkillDot = None
@@ -206,11 +210,10 @@ class DistributedCardJitsu(DistributedNode):
         self.clockNode.hide()
 
     def enterPlaying(self):
-        self.inGame = True
+        base.playMusic(self.bgm, looping=True)
         self.enableLeaveButton()
 
     def exitPlaying(self):
-        self.inGame = False
         if self.leaveButton:
             self.leaveButton.destroy()
             self.leaveButton = None

@@ -25,7 +25,7 @@ class DustCloud(NodePath):
 
     def playSound(self):
         if self.wantSound:
-            self.poofSound.play()
+            base.sfxPlayer.playSfx(self.poofSound)
 
     def createTrack(self, rate=24):
         tflipDuration = self.seqNode.getNumChildren() / float(rate)

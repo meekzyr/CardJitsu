@@ -1,6 +1,7 @@
 from .DistributedPlayer import DistributedPlayer
 from ..jitsu.CardJitsuGlobals import FONT
 from direct.gui.DirectDialog import YesNoDialog
+from direct.gui.DirectGuiGlobals import DISABLED, NORMAL
 
 
 class LocalPlayer(DistributedPlayer):
@@ -27,6 +28,7 @@ class LocalPlayer(DistributedPlayer):
             self.d_sendReady()
         else:
             self.cr.mainMenu.load()
+            self.cr.mainMenu.buttons[0]['state'] = NORMAL
 
         if self.requeueDialog:
             self.requeueDialog.destroy()
@@ -39,6 +41,7 @@ class LocalPlayer(DistributedPlayer):
         cancelImageList = (buttons.find('**/CloseBtn_UP'), buttons.find('**/CloseBtn_DN'),
                            buttons.find('**/CloseBtn_Rllvr'))
         buttons.removeNode()
+        self.cr.mainMenu.buttons[0]['state'] = DISABLED
         self.requeueDialog = YesNoDialog(text='Would you like to requeue?',
                                          button_text_pos=(0, -0.1),
                                          button_relief=None,
