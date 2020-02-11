@@ -30,5 +30,4 @@ cbMgr.addBin('gui-popup', cbMgr.BTUnsorted, 60)
 from jitsu.objects import JitsuClientRepository
 
 base.cr = JitsuClientRepository.JitsuClientRepository()
-base.cr.startConnect()
 base.run()

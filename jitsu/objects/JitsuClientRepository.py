@@ -7,6 +7,7 @@ from direct.gui.DirectGui import *
 from direct.gui import DirectGuiGlobals
 from jitsu.player import LocalPlayer
 import sys
+from ..jitsu.CardJitsuGlobals import FONT
 from jitsu.gui.LoginScreen import LoginScreen
 from jitsu.gui.MainMenu import MainMenu
 
@@ -23,6 +24,7 @@ class JitsuClientRepository(ClientRepositoryBase):
         self.visInterest = None
         self.districtObj = None
         self.url = None
+        self.connectionBox = None
         self.failureText = None
 
         self.authManager = self.generateGlobalObject(1001, 'AuthManager')
@@ -35,14 +37,34 @@ class JitsuClientRepository(ClientRepositoryBase):
 
         self.mainBg = loader.loadModel('phase_3/models/gui/background')
         self.mainBg.reparentTo(aspect2d, DirectGuiGlobals.BACKGROUND_SORT_INDEX)
+        self._startConnecting()
+
+    def _startConnecting(self):
+        self.connectionBox = DirectDialog(text='Connecting...', text_font=FONT)
+        taskMgr.doMethodLater(0.1, self.startConnect, 'connection-start')
 
     def lostConnection(self):
+        if self.failureText:
+            self.failureText.destroy()
+            self.failureText = None
+
+        if self.connectionBox:
+            self.connectionBox.destroy()
+            self.connectionBox = None
+
         self.notify.warning("Lost connection to gameserver.")
-        self.failureText = OnscreenText('Lost connection to gameserver.', scale=0.15, fg=(1, 0, 0, 1),
-                                        shadow=(0, 0, 0, 1), pos=(0, 0.2))
-        self.failureText.setBin('gui-popup', 0)
-        base.transitions.fadeScreen(alpha=1)
-        render.hide()
+        buttons = loader.loadModel('phase_3/models/gui/dialog_box_buttons_gui')
+        okImageList = (buttons.find('**/ChtBx_OKBtn_UP'), buttons.find('**/ChtBx_OKBtn_DN'),
+                       buttons.find('**/ChtBx_OKBtn_Rllvr'))
+        cancelImageList = (buttons.find('**/CloseBtn_UP'), buttons.find('**/CloseBtn_DN'),
+                           buttons.find('**/CloseBtn_Rllvr'))
+        self.failureText = YesNoDialog(text='Lost connection to the gameserver.\n Would you like to retry?',
+                                       button_text_pos=(0, -0.1), button_relief=None, button_text_font=FONT,
+                                       buttonImageList=[okImageList, cancelImageList], text_font=FONT,
+                                       text_align=TextNode.ACenter, command=self.failDiagResponse)
+
+        #base.transitions.fadeScreen(alpha=1)
+        #render.hide()
 
     def exit(self):
         if self.isConnected():
@@ -51,24 +73,57 @@ class JitsuClientRepository(ClientRepositoryBase):
 
         sys.exit()
 
-    def startConnect(self):
-        self.url = None
-        if not self.url:
-            tcpPort = base.config.GetInt('base-port', 7198)
-            hostname = base.config.GetString('base-host', '127.0.0.1')
-            if not hostname:
-                hostname = '127.0.0.1'
-            self.url = URLSpec('g://%s' % hostname, 1)
-            self.url.setPort(tcpPort)
+    def startConnect(self, task=None):
+        tcpPort = base.config.GetInt('gameserver-port', 7198)
+        hostname = base.config.GetString('gameserver-host', '127.0.0.1')
+        if not hostname:
+            hostname = '127.0.0.1'
+        self.url = URLSpec('g://%s' % hostname, 1)
+        self.url.setPort(tcpPort)
 
-        self.connect([self.url], successCallback=self.connectSuccess, failureCallback=self.connectFailure)
+        self.connect([self.url], successCallback=self.connectSuccess, failureCallback=self.connectFailure,
+                     successArgs=[task], failureArgs=[task])
 
-    def connectFailure(self, statusCode, statusString):
-        self.failureText = OnscreenText('Failed to connect to %s:\n%s.' % (self.url, statusString),
-                                        scale=0.15, fg=(1, 0, 0, 1), shadow=(0, 0, 0, 1), pos=(0, 0.2))
+    def failDiagResponse(self, retry):
+        if retry:
+            if self.failureText:
+                self.failureText.destroy()
+                self.failureText = None
 
-    def connectSuccess(self):
-        """ Successfully connected.  But we still need to send a CLIENT_HELLO message. """
+            self._startConnecting()
+        else:
+            self.exit()
+
+    def connectFailure(self, statusCode, statusString, task):
+        if self.connectionBox:
+            self.connectionBox.destroy()
+            self.connectionBox = None
+
+        if self.failureText:
+            self.failureText.destroy()
+            self.failureText = None
+
+        buttons = loader.loadModel('phase_3/models/gui/dialog_box_buttons_gui')
+        okImageList = (buttons.find('**/ChtBx_OKBtn_UP'), buttons.find('**/ChtBx_OKBtn_DN'),
+                       buttons.find('**/ChtBx_OKBtn_Rllvr'))
+        cancelImageList = (buttons.find('**/CloseBtn_UP'), buttons.find('**/CloseBtn_DN'),
+                           buttons.find('**/CloseBtn_Rllvr'))
+        self.failureText = YesNoDialog(text='Unable to connect to the gameserver.\n Would you like to retry?',
+                                       button_text_pos=(0, -0.1), button_relief=None, button_text_font=FONT,
+                                       buttonImageList=[okImageList, cancelImageList], text_font=FONT,
+                                       text_align=TextNode.ACenter, command=self.failDiagResponse)
+        if task:
+            return task.done
+
+    def connectSuccess(self, task):
+        if self.failureText:
+            self.failureText.destroy()
+            self.failureText = None
+
+        if self.connectionBox:
+            self.connectionBox.destroy()
+            self.connectionBox = None
+
         dg = PyDatagram()
         dg.addUint16(CLIENT_HELLO)
         dg.addUint32(self.hashVal)
@@ -78,6 +133,9 @@ class JitsuClientRepository(ClientRepositoryBase):
         if not self.loginInterface:
             self.loginInterface = LoginScreen()
             self.loginInterface.load()
+
+        if task:
+            return task.done
 
     def handleDatagram(self, di):
         msgType = self.getMsgType()
@@ -179,11 +237,6 @@ class JitsuClientRepository(ClientRepositoryBase):
 
     def uberZoneInterestComplete(self):
         if self.timeManager:
-            #if self.timeManager.synchronize('startup'):
-            #    self.accept('gotTimeSync', self.gotTimeSync)
-            #else:
-               #self.notify.warning('No sync from TimeManager.')
-               # self.gotTimeSync()
             DistributedSmoothNode.globalActivateSmoothing(1, 0)
         else:
             self.notify.warning('No TimeManager present.')
