@@ -1,3 +1,4 @@
 # Builds
 win_amd64/
+win32/
 *.whl
