@@ -92,6 +92,10 @@ class DistributedCardJitsu(DistributedNode):
             self.revealSequence.clearToInitial()
             self.revealSequence = None
 
+        if self.otherCard:
+            self.otherCard.destroy()
+            self.otherCard = None
+
         if self.opponentSkillDot:
             self.opponentSkillDot.destroy()
             self.opponentSkillDot = None
@@ -270,11 +274,13 @@ class DistributedCardJitsu(DistributedNode):
         dna = ToonDNA.ToonDNA()
         dna.makeFromNetString(base.localAvatar.getDNAString())
         ourToon = ToonHead.ToonHead()
-        ourToon.startBlink()
         ourToon.setH(180)
         ourToon.setupHead(dna, forGui=1)
-        ourToon.setScale(0.11)  # TODO: head scales for species
         ourToon.reparentTo(self.ourFrame)
+        ourToon.startBlink()
+        ourToon.setScale(HEAD_SCALES.get(dna.head, 0.11))  # TODO: head scales for species
+
+        print('our head is', dna.head)
 
         ourSkillLevel = base.localAvatar.getBeltLevel()
         if ourSkillLevel != NONE:
@@ -289,11 +295,12 @@ class DistributedCardJitsu(DistributedNode):
         dna = ToonDNA.ToonDNA()
         dna.makeFromNetString(dnaString)
         opponent = ToonHead.ToonHead()
-        opponent.startBlink()
         opponent.setH(180)
         opponent.setupHead(dna, forGui=1)
-        opponent.setScale(0.11) # TODO: head scales for species
         opponent.reparentTo(self.opponentFrame)
+        opponent.startBlink()
+        opponent.setScale(HEAD_SCALES.get(dna.head, 0.11))  # TODO: head scales for species
+        print('opponent head is', dna.head)
 
         if skillLevel != NONE:
             self.opponentSkillDot = DirectLabel(parent=self.opponentFrame, relief=None, geom=dot, geom_scale=0.3,
