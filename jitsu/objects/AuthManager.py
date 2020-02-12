@@ -1,6 +1,7 @@
 from direct.distributed.DistributedObject import DistributedObject
 from direct.gui.OnscreenText import OnscreenText
 from .AuthGlobals import *
+from ..jitsu.CardJitsuGlobals import FONT
 
 
 class AuthManager(DistributedObject):
@@ -33,10 +34,16 @@ class AuthManager(DistributedObject):
         taskMgr.remove(self.uniqueName('loginFailed'))
 
     def showLoginError(self, text):
-        self.invalidText = OnscreenText(text, scale=0.15, fg=(1, 0, 0, 1), shadow=(0, 0, 0, 1), pos=(0, 0.2))
+        task = self.uniqueName('loginFailed')
+        if taskMgr.hasTaskNamed(task):
+            taskMgr.remove(task)
+            self.cleanupText()
+
+        self.invalidText = OnscreenText(font=FONT, wordwrap=18, text=text, scale=0.15, fg=(1, 0, 0, 1),
+                                        shadow=(0, 0, 0, 1), pos=(0, -0.5))
         self.invalidText.setBin('gui-popup', 0)
-        taskMgr.remove(self.uniqueName('loginFailed'))
-        taskMgr.doMethodLater(3, self.cleanupText, self.uniqueName('loginFailed'))
+
+        taskMgr.doMethodLater(5, self.cleanupText, task)
 
     def d_requestLogin(self, username, password, wantCreate):
         self.sendUpdate('requestLogin', [username, password, wantCreate])
