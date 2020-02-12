@@ -200,7 +200,8 @@ class CustomizeScreen(DirectFrame):
         newDNA = ToonDNA.ToonDNA()
         newDNA.makeFromNetString(self.dna.makeNetString())
         newDNA.updateToonProperties(head=head[0] + head[1] + size)
-        self.makeToon(newDNA.makeNetString())
+        if newDNA.head in ToonDNA.toonHeadTypes:
+            self.makeToon(newDNA.makeNetString())
 
     def __selectGender(self, *args):
         gender = args[0].lower()
