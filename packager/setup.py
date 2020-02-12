@@ -51,8 +51,6 @@ def cleanup_resources():
 
 
 def build_game():
-
-
     setup(
         name="jitsu",
         options={
