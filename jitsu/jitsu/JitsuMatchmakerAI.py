@@ -50,7 +50,10 @@ class JitsuMatchmakerAI(DirectObject):
                 othersInRank.remove(avId)
                 self.notify.debug(['mmTask', othersInRank, extension, avId, self.queueByRanks])
                 if len(othersInRank) + 1 < NUM_PLAYERS:
-                    self.rankExtensions[avId] += 1
+                    if avId in self.rankExtensions:
+                        self.rankExtensions[avId] += 1
+                    else:
+                        self.rankExtensions[avId] = 1
                 else:
                     match = [avId, othersInRank[0]]
                     done.extend(match)
