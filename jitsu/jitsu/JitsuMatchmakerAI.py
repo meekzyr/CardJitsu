@@ -2,6 +2,7 @@ from direct.directnotify.DirectNotifyGlobal import directNotify
 from direct.showbase.DirectObject import DirectObject
 
 from .DistributedCardJitsuAI import DistributedCardJitsuAI
+from .DistributedSenseiBattleAI import DistributedSenseiBattleAI
 from .CardJitsuGlobals import *
 
 import copy
@@ -77,6 +78,19 @@ class JitsuMatchmakerAI(DirectObject):
             self.zone2Game[zoneId] = game
 
         return task.again
+
+    def createSenseiBattle(self, avId):
+        av = self.air.doId2do.get(avId)
+        if not av:
+            return
+
+        zoneId = self.air.allocateChannel()
+        av.sendUpdate('setGameZone', [zoneId])
+
+        game = DistributedSenseiBattleAI(self.air, f'Sensei-{avId}')
+        game.zoneId = zoneId
+        game.generateOtpObject(self.air.districtId, zoneId)
+        self.zone2Game[zoneId] = game
 
     def playerEntered(self, avId):
         av = self.air.doId2do.get(avId)

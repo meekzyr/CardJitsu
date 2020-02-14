@@ -30,6 +30,9 @@ class DistributedPlayerAI(DistributedNodeAI):
     def queueReady(self):
         self.air.matchmaker.playerEntered(self.doId)
 
+    def requestSensei(self):
+        self.air.matchmaker.createSenseiBattle(self.doId)
+
     def setBeltLevel(self, beltLevel):
         self.beltLevel = beltLevel
 

@@ -71,7 +71,10 @@ class MainMenu(NodePath):
         c.load()
 
     def enterOptions(self):
-        pass  # TODO
+        pass # TODO
+
+    def challengeSensei(self):
+        base.localAvatar.d_requestSensei()
 
     def _createProgressBar(self):
         if self.beltProgress:
@@ -154,11 +157,12 @@ class MainMenu(NodePath):
         disabledButton = buttonModels.find('**//InventoryButtonFlat')
 
         cmdMap = {'Queue': self.readyToQueue,
+                  'Challenge': self.challengeSensei,
                   'Customize': self.customizePlayer,
                   'Options': self.enterOptions,
                   'Quit': base.cr.exit}
 
-        startZ = -1.0
+        startZ = -0.9
         for bText, bCmd in cmdMap.items():
             button = DirectButton(parent=base.a2dTopCenter, relief=None, text=bText, text_fg=(1, 1, 0.65, 1),
                                   text_font=FONT, text_pos=(0, -.23), text_scale=0.6, pos=(0.8, 0, startZ),

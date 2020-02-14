@@ -43,5 +43,8 @@ class DistributedPlayer(DistributedNode):
     def getBeltLevel(self):
         return self.beltLevel
 
+    def d_requestSensei(self):
+        self.sendUpdate('requestSensei')
+
     def d_sendReady(self):
         self.sendUpdate('queueReady')

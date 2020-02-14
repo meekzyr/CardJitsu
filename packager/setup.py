@@ -73,7 +73,8 @@ def build_game():
                 ],
                 'include_modules': {
                     '*': ['jitsu.account.Account', 'jitsu.objects.TimeManager', 'jitsu.objects.AuthManager',
-                          'jitsu.objects.DistributedDistrict', 'jitsu.jitsu.DistributedCardJitsu']},
+                          'jitsu.objects.DistributedDistrict', 'jitsu.jitsu.DistributedCardJitsu',
+                          'jitsu.jitsu.DistributedSenseiBattle']},
                 'exclude_dependencies': platform_dependencies,
                 'log_filename': 'jitsu.log',
                 'use_optimized_wheels': False,
