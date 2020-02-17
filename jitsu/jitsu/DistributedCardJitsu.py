@@ -17,7 +17,7 @@ import random
 
 
 def getDustCloudIval():
-    dustCloud = DustCloud()
+    dustCloud = DustCloud(wantSound=config.GetBool('want-sfx', True))
     dustCloud.setScale(0.14)
     dustCloud.createTrack()
     return Sequence(Wait(0.5), Func(dustCloud.reparentTo, aspect2d), dustCloud.track, Func(dustCloud.detachNode))
@@ -215,7 +215,8 @@ class DistributedCardJitsu(DistributedNode):
         self.clockNode.hide()
 
     def enterPlaying(self):
-        base.playMusic(self.bgm, looping=True)
+        if config.GetBool('want-music', True):
+            base.playMusic(self.bgm, looping=True)
         self.enableLeaveButton()
 
     def exitPlaying(self):
@@ -270,6 +271,8 @@ class DistributedCardJitsu(DistributedNode):
         self.ourFrame = DirectLabel(parent=base.a2dBottomLeft, relief=None, geom=frame, geom_scale=(0.25, 0.1, 0.25),
                                     text=base.localAvatar.getName(), text_wordwrap=7.504, text_align=TextNode.A_center,
                                     text_font=FONT, text_scale=0.07, text_pos=(0, -0.2), sortOrder=70, pos=(0.24, 0, 0.32))
+        if not config.GetBool('show-player-names', True):
+            self.ourFrame['text'] = ''
 
         dna = ToonDNA.ToonDNA()
         dna.makeFromNetString(base.localAvatar.getDNAString())
@@ -280,15 +283,11 @@ class DistributedCardJitsu(DistributedNode):
         ourToon.startBlink()
         ourToon.setScale(HEAD_SCALES.get(dna.head, 0.11))
 
-        ourSkillLevel = base.localAvatar.getBeltLevel()
-        if ourSkillLevel != NONE:
-            self.ourDot = DirectLabel(parent=self.ourFrame, relief=None, geom=dot, geom_scale=0.3,
-                                      sortOrder=80, geom_color=RANK_COLORS[ourSkillLevel], geom_hpr=(0, 90, 0),
-                                      geom_pos=(0.11, 0, 0.17))
-
         self.opponentFrame = DirectLabel(parent=base.a2dTopRight, relief=None, geom=frame, geom_scale=(0.25, 0.1, 0.25),
                                          text=name, text_wordwrap=7.504, text_align=TextNode.A_center, text_font=FONT,
                                          text_scale=0.07, text_pos=(0, -0.2), sortOrder=70, pos=(-0.31, 0, -0.35))
+        if not config.GetBool('show-player-names', True):
+            self.opponentFrame['text'] = ''
 
         dna = ToonDNA.ToonDNA()
         dna.makeFromNetString(dnaString)
@@ -299,10 +298,17 @@ class DistributedCardJitsu(DistributedNode):
         opponent.startBlink()
         opponent.setScale(HEAD_SCALES.get(dna.head, 0.11))
 
-        if skillLevel != NONE:
-            self.opponentSkillDot = DirectLabel(parent=self.opponentFrame, relief=None, geom=dot, geom_scale=0.3,
-                                                sortOrder=80, geom_color=RANK_COLORS[skillLevel], geom_hpr=(0, 90, 0),
-                                                geom_pos=(0.11, 0, 0.17))
+        if config.GetBool('show-player-ranks', True):
+            ourSkillLevel = base.localAvatar.getBeltLevel()
+            if ourSkillLevel != NONE:
+                self.ourDot = DirectLabel(parent=self.ourFrame, relief=None, geom=dot, geom_scale=0.3,
+                                          sortOrder=80, geom_color=RANK_COLORS[ourSkillLevel], geom_hpr=(0, 90, 0),
+                                          geom_pos=(0.11, 0, 0.17))
+
+            if skillLevel != NONE:
+                self.opponentSkillDot = DirectLabel(parent=self.opponentFrame, relief=None, geom=dot, geom_scale=0.3,
+                                                    sortOrder=80, geom_color=RANK_COLORS[skillLevel], geom_hpr=(0, 90, 0),
+                                                    geom_pos=(0.11, 0, 0.17))
 
         dot.removeNode()
         frame.removeNode()

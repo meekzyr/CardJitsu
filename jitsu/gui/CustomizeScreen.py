@@ -550,3 +550,4 @@ class CustomizeScreen(DirectFrame):
             self.dna = None
 
         self._callback(self)
+        self.destroy()

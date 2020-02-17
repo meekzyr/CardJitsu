@@ -24,6 +24,10 @@ from direct.showbase.ShowBase import ShowBase
 base = ShowBase()
 base.disableMouse()
 
+from jitsu.base.Options import Options
+base.options = builtins.options = Options()
+
+
 cbMgr = CullBinManager.getGlobalPtr()
 cbMgr.addBin('gui-popup', cbMgr.BTUnsorted, 60)
 

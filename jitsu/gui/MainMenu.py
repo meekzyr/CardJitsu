@@ -6,6 +6,7 @@ from ..jitsu.CardJitsuGlobals import *
 from ..player.Toon import Toon
 from ..player import ToonDNA
 from ..gui.CustomizeScreen import CustomizeScreen
+from ..gui.OptionsPage import OptionsPage
 
 
 class MainMenu(NodePath):
@@ -71,7 +72,8 @@ class MainMenu(NodePath):
         c.load()
 
     def enterOptions(self):
-        pass # TODO
+        o = OptionsPage()
+        o.load()
 
     def challengeSensei(self):
         base.localAvatar.d_requestSensei()
@@ -126,18 +128,39 @@ class MainMenu(NodePath):
 
         dot.removeNode()
 
+    def configReload(self):
+        if options['want-music'] and not self.musicSeq:
+            self.startMusic()
+        elif self.musicSeq:
+            self.stopMusic()
+
+    def startMusic(self):
+        if options['want-music']:
+            if not self.musicSeq:
+                self.musicSeq = Sequence()
+                if self.bgm_intro:
+                    self.musicSeq.extend([Func(base.playMusic, self.bgm_intro), Wait(self.bgm_intro.length())])
+
+                if self.bgm_main:
+                    self.musicSeq.append(Func(base.playMusic, self.bgm_main, looping=True))
+
+                self.musicSeq.start()
+        elif self.musicSeq:
+            self.stopMusic()
+
+    def stopMusic(self):
+        if self.musicSeq:
+            self.musicSeq.clearToInitial()
+            self.musicSeq = None
+
+        if self.bgm_intro:
+            self.bgm_intro.stop()
+
+        if self.bgm_main:
+            self.bgm_main.stop()
+
     def load(self):
-        if not self.musicSeq:
-            self.musicSeq = Sequence()
-            if self.bgm_intro:
-                self.musicSeq.extend([Func(base.playMusic, self.bgm_intro), Wait(self.bgm_intro.length())])
-
-            if self.bgm_main:
-                self.musicSeq.append(Func(base.playMusic, self.bgm_main, looping=True))
-
-            self.musicSeq.start()
-        else:
-            self.musicSeq.resume()
+        self.startMusic()
 
         if self.logo.isStashed():
             self.logo.unstash()
@@ -237,8 +260,12 @@ class MainMenu(NodePath):
             self.bgm_intro.stop()
             self.bgm_intro = None
 
+        if self.bgm_main:
+            self.bgm_main.stop()
+            self.bgm_main = None
+
         if self.musicSeq:
-            self.musicSeq.pause()
+            self.musicSeq.finish()
             self.musicSeq = None
 
         if self.beltProgress:

@@ -1,18 +1,13 @@
 from direct.gui.DirectGui import *
-from direct.fsm import StateData
 from panda3d.core import *
 from direct.gui import DirectGuiGlobals as DGG
 from ..jitsu.CardJitsuGlobals import FONT
 
 
-class LoginScreen(StateData.StateData):
+class LoginScreen:
     def __init__(self):
-        StateData.StateData.__init__(self, 'done')
-        self.userGlobalFocusHandler = None
-
         self.userName = ''
         self.password = ''
-
         self.frame = None
         self.usernameLabel = None
         self.usernameEntry = None
@@ -45,7 +40,6 @@ class LoginScreen(StateData.StateData):
                                          extraArgs=[True])
 
     def unload(self):
-        self.notify.debug('unload')
         self.usernameEntry.destroy()
         self.passwordEntry.destroy()
         self.loginButton.destroy()

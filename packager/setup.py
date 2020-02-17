@@ -58,6 +58,7 @@ def build_game():
                 'requirements_path': requirements_file,
                 'include_patterns': [
                     'etc/jitsu.dc',
+                    'etc/options.json',
                     'resources/*.mf',
                     'resources/*.ico'
                 ],
