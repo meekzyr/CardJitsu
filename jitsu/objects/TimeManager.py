@@ -71,7 +71,6 @@ class TimeManager(DistributedObject):
             self.notify.debug("Not resyncing (too soon): %s" % description)
             return 0
 
-        self.talkResult = 0
         self.thisContext = self.nextContext
         self.attemptCount = 0
         self.nextContext = (self.nextContext + 1) & 255
@@ -79,7 +78,6 @@ class TimeManager(DistributedObject):
         self.start = now
         self.lastAttempt = now
         self.sendUpdate("requestServerTime", [self.thisContext])
-
         return 1
 
     def serverTime(self, context, timestamp):
