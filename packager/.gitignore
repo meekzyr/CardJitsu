@@ -2,3 +2,5 @@
 win_amd64/
 win32/
 *.whl
+*.zip
+*.7z
