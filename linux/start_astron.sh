@@ -1,0 +1,2 @@
+cd ../astron
+./astrond

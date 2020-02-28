@@ -19,6 +19,13 @@ if sys.platform == 'win32':
     else:
         requirements_file = 'packager/requirements_win32.txt'
         distribution = 'win32'
+elif 'linux' in sys.platform:
+    platform_dependencies = ['libdl.so.*', 'libstdc++.so.*', 'libm.so.*', 'libgcc_s.so.*',
+            'libpthread.so.*', 'libc.so.*', 'ld-linux-x86-64.so.*',
+            'libgl.so.*', 'libx11.so.*', 'libreadline.so.*', 'libncursesw.so.*',
+            'libbz2.so.*', 'libz.so.*', 'liblzma.so.*', 'librt.so.*', 'libutil.so.*']
+    requirements_file = 'packager/requirements_linux.txt'
+    distribution = 'manylinux1_x86_64'
 else:
     platform_dependencies = ['/usr/lib/libstdc++.*.dylib', '/usr/lib/libz.*.dylib', '/usr/lib/libobjc.*.dylib',
                              '/usr/lib/libSystem.*.dylib', '/usr/lib/libbz2.*.dylib', '/usr/lib/libedit.*.dylib',
