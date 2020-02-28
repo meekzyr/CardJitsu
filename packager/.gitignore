@@ -1,6 +1,7 @@
 # Builds
 win_amd64/
 win32/
+manylinux1_x86_64/
 *.whl
 *.zip
 *.7z
